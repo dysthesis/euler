@@ -22,55 +22,55 @@
 	  (json-mode . json-ts-mode)
 	  (css-mode . css-ts-mode)
 	  (python-mode . python-ts-mode)))
-	(tool-bar-mode 0)
-	(menu-bar-mode 0)
-	(scroll-bar-mode 0)
-	(column-number-mode 1)
-	(show-paren-mode 1)
-	(setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
-	(setopt display-time-default-load-average nil) ; this information is useless for most
+  (tool-bar-mode 0)
+  (menu-bar-mode 0)
+  (scroll-bar-mode 0)
+  (column-number-mode 1)
+  (show-paren-mode 1)
+  (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
+  (setopt display-time-default-load-average nil) ; this information is useless for most
 
-	;; Automatically reread from disk if the underlying file changes
-	(setopt auto-revert-avoid-polling t)
-	;; Some systems don't do file notifications well; see
-	;; https://todo.sr.ht/~ashton314/emacs-euler/11
-	(setopt auto-revert-interval 5)
-	(setopt auto-revert-check-vc-info t)
-	(global-auto-revert-mode)
+  ;; Automatically reread from disk if the underlying file changes
+  (setopt auto-revert-avoid-polling t)
+  ;; Some systems don't do file notifications well; see
+  ;; https://todo.sr.ht/~ashton314/emacs-euler/11
+  (setopt auto-revert-interval 5)
+  (setopt auto-revert-check-vc-info t)
+  (global-auto-revert-mode)
 
-	;; Save history of minibuffer
-	(savehist-mode)
-	;; Move through windows with Ctrl-<arrow keys>
-	(windmove-default-keybindings 'control) ; You can use other modifiers here
+  ;; Save history of minibuffer
+  (savehist-mode)
+  ;; Move through windows with Ctrl-<arrow keys>
+  (windmove-default-keybindings 'control) ; You can use other modifiers here
 
-	;; Fix archaic defaults
-	(setopt sentence-end-double-space nil)
+  ;; Fix archaic defaults
+  (setopt sentence-end-double-space nil)
 
-	;; Make right-click do something sensible
-	(when (display-graphic-p)
-	  (context-menu-mode))
-	(setopt inhibit-splash-screen t)
+  ;; Make right-click do something sensible
+  (when (display-graphic-p)
+    (context-menu-mode))
+  (setopt inhibit-splash-screen t)
 
-	;; Disable auto-backup
-	(setq make-backup-files nil) 
+  ;; Disable auto-backup
+  (setq make-backup-files nil)
 
-	(let* ((font-size
-		(let* ((hostname (car (split-string (system-name) "\\." t)))
-		       (size-by-hostname '(("deimos" . 9)
-					   ("phobos" . 13)))
-		       (default-size 9))
-		  (or (cdr (assoc hostname size-by-hostname))
-		      default-size)))
-	       (font-height (* font-size 10)))
-	  (set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
-	  (set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
-	  (setq-default line-spacing 0.2)
-	  (custom-theme-set-faces
-	   'user
-	   `(variable-pitch ((t (:family "Atkinson Hyperlegible Next" :height ,font-height))))
-	   `(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
-	(add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2))
-	(load-theme 'modus-vivendi)) ; for light theme, use modus-operand
+  (let* ((font-size
+	  (let* ((hostname (car (split-string (system-name) "\\." t)))
+		 (size-by-hostname '(("deimos" . 9)
+				     ("phobos" . 13)))
+		 (default-size 9))
+	    (or (cdr (assoc hostname size-by-hostname))
+		default-size)))
+	 (font-height (* font-size 10)))
+    (set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
+    (set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
+    (setq-default line-spacing 0.2)
+    (custom-theme-set-faces
+     'user
+     `(variable-pitch ((t (:family "Atkinson Hyperlegible Next" :height ,font-height))))
+     `(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
+  (add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2))
+  (load-theme 'modus-vivendi)) ; for light theme, use modus-operand
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
