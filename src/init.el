@@ -39,7 +39,37 @@
   ;; Enable horizontal scrolling
   (setopt mouse-wheel-tilt-scroll t)
   (setopt mouse-wheel-flip-direction t)
-  
+
+  ;; PERF: Disable bidirectional text scanning. I don't use right-to-left languages (e.g., Arabic),
+  ;; so this is a nice perf boost for me.
+  (setq-default bidi-display-reordering 'left-to-right
+                bidi-paragraph-direction 'left-to-right)
+  (setq bidi-inhibit-bpa t)
+
+  ;; PERF: Defer fontification until typing is done, in order to avoid micro-stutters, usually caused
+  ;; by tree-sitter.
+  (setq redisplay-skip-fontification-on-input t)
+
+  ;; PERF: Don't render cursors in non-focused windows
+  (setq-default cursor-in-non-selected-windows nil)
+  (setq highlight-nonselected-windows nil)
+
+  ;; Don't waste slots by saving duplicate entries in the kill-ring
+  (setq kill-do-not-save-duplicates t)
+
+  ;; Save clipboard before killing
+  (setq save-interprogram-paste-before-kill t)
+
+  ;; Persist kill-ring across sessions
+  (setq savehist-additional-variables
+      '(search-ring regexp-search-ring kill-ring))
+  ;; Strip text properties that bloats the savehist file.
+  (add-hook 'savehist-save-hook
+            (lambda ()
+              (setq kill-ring
+                    (mapcar #'substring-no-properties
+                            (cl-remove-if-not #'stringp kill-ring)))))
+
   ;; We won't set these, but they're good to know about
   ;;
   ;; (setopt indent-tabs-mode nil)
@@ -438,6 +468,10 @@
   (eglot-send-changes-idle-time 0.1)
   (eglot-extend-to-xref t)
   :config
+  ;; PERF: Increase process output buffer for LSP, in order to reduce the number of
+  ;; read calls Emacs has to make.
+  (setq read-process-output-max (* 4 1024 1024))
+
   (dysthesis/start/leader-keys
      "c" '(:ignore t :which-key "Code")
      "c <escape>" '(keyboard-escape-quit :which-key t)
