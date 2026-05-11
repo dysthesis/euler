@@ -1,0 +1,14 @@
+#+title: Emacs configuration
+
+This repository contains my configuration for Emacs, wrapped with Nix.
+
+* Roadmap
+
+As of right now, it's highly incomplete. Some things I'm still working on for this includes
+
+- [ ] touching up the Noir theme (ported [[https://github.com/slugbyte/lackluster.nvim][lackluster.nvim]] but with the principles from [[https://tonsky.me/blog/syntax-highlighting/]]),
+- [ ] getting Nix to compile every Emacs Lisp file to =.eln= on build-time,
+- [ ] some language-specific dev setup (Rust, C, etc.),
+- [ ] debugging setup (using [[https://github.com/svaante/dape][dape]] to work with eglot instead of lsp-mode),
+- [ ] Org-mode touchups, and
+- [ ] modularisation.
