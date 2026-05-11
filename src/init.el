@@ -13,7 +13,7 @@
 
 ;; Don't litter file system with *~ backup files; put them all inside
 ;; ~/.emacs.d/backup or wherever
-(defun bedrock--backup-file-name (fpath)
+(defun euler--backup-file-name (fpath)
   "Return a new file path of a given file path.
 If the new path's directories does not exist, create them."
   (let* ((backupRootDir (concat user-emacs-directory "emacs-backup/"))
@@ -21,7 +21,7 @@ If the new path's directories does not exist, create them."
          (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~") )))
     (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
     backupFilePath))
-(setopt make-backup-file-name-function 'bedrock--backup-file-name)
+(setopt make-backup-file-name-function 'euler--backup-file-name)
 
 ;; The above creates nested directories in the backup folder. If
 ;; instead you would like all backup files in a flat structure, albeit
@@ -160,7 +160,7 @@ If the new path's directories does not exist, create them."
 	;; Automatically reread from disk if the underlying file changes
 	(setopt auto-revert-avoid-polling t)
 	;; Some systems don't do file notifications well; see
-	;; https://todo.sr.ht/~ashton314/emacs-bedrock/11
+	;; https://todo.sr.ht/~ashton314/emacs-euler/11
 	(setopt auto-revert-interval 5)
 	(setopt auto-revert-check-vc-info t)
 	(global-auto-revert-mode)
@@ -234,6 +234,62 @@ If the new path's directories does not exist, create them."
   (dysthesis/start/leader-keys
    "." '(find-file :wk "Find file")
    "TAB" '(comment-line :wk "Comment lines")))
+
+(use-package avy
+  :ensure t
+  :demand t
+  :bind (("C-c j" . avy-goto-line)
+         ("s-j"   . avy-goto-char-timer)))
+
+;; Consult: Misc. enhanced commands
+(use-package consult
+  :ensure t
+  :bind (
+         ;; Drop-in replacements
+         ("C-x b" . consult-buffer)     ; orig. switch-to-buffer
+         ("M-y"   . consult-yank-pop)   ; orig. yank-pop
+         ;; Searching
+         ("M-s r" . consult-ripgrep)
+         ("M-s l" . consult-line)       ; Alternative: rebind C-s to use
+         ("M-s s" . consult-line)       ; consult-line instead of isearch, bind
+         ("M-s L" . consult-line-multi) ; isearch to M-s s
+         ("M-s o" . consult-outline)
+         ;; Isearch integration
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)   ; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history) ; orig. isearch-edit-string
+         ("M-s l" . consult-line)            ; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)      ; needed by consult-line to detect isearch
+         )
+  :config
+  ;; Narrowing lets you restrict results to certain groups of candidates
+  (setq consult-narrow-key "<"))
+
+(use-package embark-consult
+  :ensure t)
+
+;; Embark: supercharged context-dependent menu; kinda like a
+;; super-charged right-click.
+(use-package embark
+  :ensure t
+  :demand t
+  :after (avy embark-consult)
+  :bind (("C-c a" . embark-act))        ; bind this to an easy key to hit
+  :init
+  ;; Add the option to run embark when using avy
+  (defun euler/avy-action-embark (pt)
+    (unwind-protect
+        (save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0))))
+    t)
+
+  ;; After invoking avy-goto-char-timer, hit "." to run embark at the next
+  ;; candidate you select
+  (setf (alist-get ?. avy-dispatch-alist) 'euler/avy-action-embark))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
