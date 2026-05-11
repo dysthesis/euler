@@ -477,6 +477,9 @@
   (dysthesis/start/leader-keys
     "g g" '(magit :wk "Magit")))
 
+(use-package forge
+  :after magit)
+
 (use-package magit-todos
 	:ensure t
   :after magit
