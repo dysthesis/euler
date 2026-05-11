@@ -67,6 +67,7 @@
   (scroll-bar-mode 0)
   (column-number-mode 1)
   (show-paren-mode 1)
+
   (setopt line-number-mode t)                        ; Show current line in modeline
   (setq display-line-numbers-type 'relative)
   (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
@@ -95,6 +96,8 @@
 
   ;; Disable auto-backup
   (setq make-backup-files nil)
+  ;; Disable auto-save
+  (setq auto-save-default nil)
 
   (let* ((font-size
 	  (let* ((hostname (car (split-string (system-name) "\\." t)))
