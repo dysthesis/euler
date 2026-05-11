@@ -1,5 +1,5 @@
 {
-  perSystem = {pkgs, ...}: {
+  perSystem = {pkgs, lib, ...}: {
     packages = rec {
       # Just the config directory
       cfg = pkgs.callPackage ./cfg.nix {};
@@ -8,7 +8,7 @@
       emacsWithPackages = pkgs.callPackage ./emacsWithPackages.nix {inherit cfg;};
 
       # Emacs with packages and config
-      euler = pkgs.callPackage ./euler.nix {inherit emacsWithPackages cfg;};
+      euler = pkgs.callPackage ./euler.nix {inherit emacsWithPackages cfg lib;};
       default = euler;
     };
   };
