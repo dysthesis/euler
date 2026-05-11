@@ -432,6 +432,11 @@
   :mode "\\.nix\\'"
   :hook (nix-mode . eglot-ensure))
 
+;; Load direnv environments from .envrc
+(use-package envrc
+  :ensure t
+  :config (envrc-global-mode))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;;   Templating
