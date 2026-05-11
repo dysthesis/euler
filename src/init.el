@@ -9,28 +9,57 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(use-package emacs
+  :config
+	(tool-bar-mode 0)
+	(menu-bar-mode 0)
+	(scroll-bar-mode 0)
+	(column-number-mode 1)
+	(show-paren-mode 1)
+	(setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
+	(setopt display-time-default-load-average nil) ; this information is useless for most
 
+	;; Automatically reread from disk if the underlying file changes
+	(setopt auto-revert-avoid-polling t)
+	;; Some systems don't do file notifications well; see
+	;; https://todo.sr.ht/~ashton314/emacs-euler/11
+	(setopt auto-revert-interval 5)
+	(setopt auto-revert-check-vc-info t)
+	(global-auto-revert-mode)
 
-;; Don't litter file system with *~ backup files; put them all inside
-;; ~/.emacs.d/backup or wherever
-(defun euler--backup-file-name (fpath)
-  "Return a new file path of a given file path.
-If the new path's directories does not exist, create them."
-  (let* ((backupRootDir (concat user-emacs-directory "emacs-backup/"))
-         (filePath (replace-regexp-in-string "[A-Za-z]:" "" fpath )) ; remove Windows driver letter in path
-         (backupFilePath (replace-regexp-in-string "//" "/" (concat backupRootDir filePath "~") )))
-    (make-directory (file-name-directory backupFilePath) (file-name-directory backupFilePath))
-    backupFilePath))
-(setopt make-backup-file-name-function 'euler--backup-file-name)
+	;; Save history of minibuffer
+	(savehist-mode)
+	;; Move through windows with Ctrl-<arrow keys>
+	(windmove-default-keybindings 'control) ; You can use other modifiers here
 
-;; The above creates nested directories in the backup folder. If
-;; instead you would like all backup files in a flat structure, albeit
-;; with their full paths concatenated into a filename, then you can
-;; use the following configuration:
-;; (Run `'M-x describe-variable RET backup-directory-alist RET' for more help)
-;;
-;; (let ((backup-dir (expand-file-name "emacs-backup/" user-emacs-directory)))
-;;   (setopt backup-directory-alist `(("." . ,backup-dir))))
+	;; Fix archaic defaults
+	(setopt sentence-end-double-space nil)
+
+	;; Make right-click do something sensible
+	(when (display-graphic-p)
+	  (context-menu-mode))
+	(setopt inhibit-splash-screen t)
+
+	;; Disable auto-backup
+	(setq make-backup-files nil) 
+
+	(let* ((font-size
+		(let* ((hostname (car (split-string (system-name) "\\." t)))
+		       (size-by-hostname '(("deimos" . 9)
+					   ("phobos" . 13)))
+		       (default-size 9))
+		  (or (cdr (assoc hostname size-by-hostname))
+		      default-size)))
+	       (font-height (* font-size 10)))
+	  (set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
+	  (set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
+	  (setq-default line-spacing 0.2)
+	  (custom-theme-set-faces
+	   'user
+	   `(variable-pitch ((t (:family "Atkinson Hyperlegible Next" :height ,font-height))))
+	   `(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
+	(add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2))
+	(load-theme 'modus-vivendi)) ; for light theme, use modus-operand
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -182,62 +211,7 @@ If the new path's directories does not exist, create them."
 (add-to-list 'tab-bar-format 'tab-bar-format-global 'append)
 (setopt display-time-format "%a %F %T")
 (setopt display-time-interval 1)
-(display-time-mode)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;
-;;;   Theme
-;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(use-package emacs
-  :config
-	(tool-bar-mode 0)
-	(menu-bar-mode 0)
-	(scroll-bar-mode 0)
-	(column-number-mode 1)
-	(show-paren-mode 1)
-	(setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
-	(setopt display-time-default-load-average nil) ; this information is useless for most
-
-	;; Automatically reread from disk if the underlying file changes
-	(setopt auto-revert-avoid-polling t)
-	;; Some systems don't do file notifications well; see
-	;; https://todo.sr.ht/~ashton314/emacs-euler/11
-	(setopt auto-revert-interval 5)
-	(setopt auto-revert-check-vc-info t)
-	(global-auto-revert-mode)
-
-	;; Save history of minibuffer
-	(savehist-mode)
-	;; Move through windows with Ctrl-<arrow keys>
-	(windmove-default-keybindings 'control) ; You can use other modifiers here
-
-	;; Fix archaic defaults
-	(setopt sentence-end-double-space nil)
-
-	;; Make right-click do something sensible
-	(when (display-graphic-p)
-	  (context-menu-mode))
-	(setopt inhibit-splash-screen t)
-
-	(let* ((font-size
-		(let* ((hostname (car (split-string (system-name) "\\." t)))
-		       (size-by-hostname '(("deimos" . 9)
-					   ("phobos" . 13)))
-		       (default-size 9))
-		  (or (cdr (assoc hostname size-by-hostname))
-		      default-size)))
-	       (font-height (* font-size 10)))
-	  (set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
-	  (set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
-	  (setq-default line-spacing 0.2)
-	  (custom-theme-set-faces
-	   'user
-	   `(variable-pitch ((t (:family "Atkinson Hyperlegible Next" :height ,font-height))))
-	   `(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
-	(add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2))
-	(load-theme 'modus-vivendi))          ; for light theme, use modus-operand
+(display-time-mode) 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
