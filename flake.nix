@@ -10,7 +10,6 @@
         _module.args.pkgs = import nixpkgs {
           inherit system;
           overlays = [inputs.emacs-overlay.overlay];
-          config.allowUnfree = true;
         };
       };
       imports = [
