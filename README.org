@@ -2,10 +2,11 @@
 
 This repository contains my configuration for Emacs, wrapped with Nix.
 
-* Roadmap
+* TODO Roadmap [3/15]
 As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
 ** TODO Touch up the Noir theme to cover more UI
+- State "DONE"       from "TODO"       [2026-05-11 Mon 20:50]
 Need it to cover more UI, and leverage bolded/italicised/underlined text more in code, rather than just colours.
 
 Some particular plugins to integrate better with this includes
@@ -47,7 +48,8 @@ Miscellaneous UI stuff, including
 - [[https://github.com/tarsius/hl-todo][hl-todo]],
 - better status line, ideally without a plugin.
 
-** TODO Magit-forge
+** DONE Magit-forge
+- State "DONE"       from "TODO"       [2026-05-11 Mon 20:49]
 Use to access GitHub (and Tangled?): https://github.com/magit/forge
 
 ** TODO Parentheses manipulations

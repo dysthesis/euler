@@ -14,6 +14,9 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar user-cache-directory "~/.cache/emacs/"
+  "Location where files created by emacs are placed.")
+
 (use-package emacs
   :hook
   ;; Auto parenthesis matching
@@ -478,7 +481,14 @@
     "g g" '(magit :wk "Magit")))
 
 (use-package forge
-  :after magit)
+  :ensure t
+	:defer
+  :after magit
+  :config
+  (setq auth-sources '("~/.authinfo.gpg"))
+	(setq forge-bug-reference-remote-files nil
+        forge-database-file
+        (expand-file-name "forge-database.sqlite" user-cache-directory)))
 
 (use-package magit-todos
 	:ensure t
