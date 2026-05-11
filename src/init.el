@@ -279,7 +279,14 @@ If the new path's directories does not exist, create them."
   (general-evil-setup)
   (dysthesis/start/leader-keys
    "." '(find-file :wk "Find file")
-   "TAB" '(comment-line :wk "Comment lines")))
+   "TAB" '(comment-line :wk "Comment lines"))
+  (dysthesis/start/leader-keys
+      "f" '(:ignore t :wk "Find")
+      "f r" '(consult-recent-file :wk "Recent files")
+      "f f" '(consult-fd :wk "Fd search for files")
+      "f g" '(consult-ripgrep :wk "Ripgrep search in files")
+      "f l" '(consult-line :wk "Find line")
+      "f i" '(consult-imenu :wk "Imenu buffer locations")))
 
 (use-package avy
   :ensure t
