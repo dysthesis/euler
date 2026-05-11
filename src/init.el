@@ -151,6 +151,12 @@
      `(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
   (add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2)))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;;   UI Tweaks
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;; Theme
 (add-to-list 'custom-theme-load-path
              (expand-file-name "themes" user-emacs-directory))
@@ -168,8 +174,6 @@
 (use-package ligature
   :ensure t
   :config
-  ;; Terminal emulator buffers need grid-faithful rendering.
-  (add-to-list 'ligature-ignored-major-modes 'ghostel-mode)
   ;; Enable the "www" ligature in every possible major mode
   (ligature-set-ligatures 't '("www"))
   ;; Enable traditional text ligatures in prose and documentation modes.
@@ -195,6 +199,41 @@
   ;; Enables ligature checks globally in all buffers.  You can also do it
   ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
+
+(use-package hl-todo
+  :ensure t
+  :hook (prog-mode . global-hl-todo-mode)
+  :config
+  (setq hl-todo-highlight-punctuation ":"
+	;; Don't highlight todo keywords in text-mode derivatives unless in
+        ;; comments (e.g. data formats like yaml, json, etc).
+        hl-todo-text-modes nil
+	hl-todo-keyword-faces
+        '(;; For reminders to change or add something at a later date.
+          ("TODO" warning bold)
+          ;; For code (or code paths) that are broken, unimplemented, or slow,
+          ;; and may become bigger problems later.
+          ("FIXME" error bold)
+          ;; For code that needs to be revisited later, either to upstream it,
+          ;; improve it, or address non-critical issues.
+          ("REVIEW" font-lock-keyword-face bold)
+          ;; For code smells where questionable practices are used intentionally
+          ;; and is likely to break in a future update.
+          ("HACK" font-lock-constant-face bold)
+          ;; For sections of code that just gotta go, and will be gone soon.
+          ;; Specifically, this means the code is deprecated, not necessarily
+          ;; the feature it enables.
+          ("DEPRECATED" font-lock-doc-face bold)
+          ;; Extra keywords commonly found in the wild, whose meaning may vary
+          ;; from project to project. Doom doesn't use BUG.
+          ("BUG" error bold)
+	  ;; Performance tricks
+	  ("PERF" success bold)
+          ;; Doom uses NOTE to indicate either A) this comment is about a code
+          ;; omission, e.g. "I *would've* put X here, but I didn't because Y",
+          ;; or B) it's a comment about a large section of code beyond the scope
+          ;; of adjacent lines.
+          ("NOTE" success bold))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;

@@ -5,7 +5,7 @@ This repository contains my configuration for Emacs, wrapped with Nix.
 * Roadmap
 As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
-** TODO touch up the Noir theme to cover more UI
+** TODO Touch up the Noir theme to cover more UI
 Need it to cover more UI, and leverage bolded/italicised/underlined text more in code, rather than just colours.
 
 Some particular plugins to integrate better with this includes
@@ -57,3 +57,9 @@ I have no idea how it works. If I can get it to replicate evil keybindings, I'm 
 
 ** TODO Try to integrate with =compile= better
 See if this can replace the need for any sort of terminal. This workflow is used by some people, e.g. Tsoding, [[https://andreyor.st/posts/2023-10-27-you-dont-need-a-terminal-emulator/][Andrey Listopadov]].
+
+** TODO Keybinds to quickly navigate and resize panes
+ Configure bindings similar to vim-tmux-navigator
+
+** TODO Project management
+See if I can make a fuzzy finder over known projects with just =project.el=, similar to =projectile= or =tmux-sessionizer=.
