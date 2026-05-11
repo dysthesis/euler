@@ -122,6 +122,7 @@
   :init
   (global-corfu-mode)
   :custom
+  (corfu-auto t)
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
   (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
