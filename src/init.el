@@ -1,7 +1,7 @@
 ;;; Guardrail
 
 (when (< emacs-major-version 29)
-  (error "Emacs Bedrock only works with Emacs 29 and newer; you have version %s" emacs-major-version))
+  (error "Euler only works with Emacs 29 and newer; you have version %s" emacs-major-version))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -9,47 +9,7 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Package initialization
-;;
-;; We'll stick to the built-in GNU and non-GNU ELPAs (Emacs Lisp Package
-;; Archive) for the base install, but there are some other ELPAs you could look
-;; at if you want more packages. MELPA in particular is very popular. See
-;; instructions at:
-;;
-;;    https://melpa.org/#/getting-started
-;;
-;; You can simply uncomment the following if you'd like to get started with
-;; MELPA packages quickly:
-;;
-;; (with-eval-after-load 'package
-;;   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
 
-;; If you want to turn off the welcome screen, uncomment this
-;(setopt inhibit-splash-screen t)
-
-(setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
-(setopt display-time-default-load-average nil) ; this information is useless for most
-
-;; Automatically reread from disk if the underlying file changes
-(setopt auto-revert-avoid-polling t)
-;; Some systems don't do file notifications well; see
-;; https://todo.sr.ht/~ashton314/emacs-bedrock/11
-(setopt auto-revert-interval 5)
-(setopt auto-revert-check-vc-info t)
-(global-auto-revert-mode)
-
-;; Save history of minibuffer
-(savehist-mode)
-
-;; Move through windows with Ctrl-<arrow keys>
-(windmove-default-keybindings 'control) ; You can use other modifiers here
-
-;; Fix archaic defaults
-(setopt sentence-end-double-space nil)
-
-;; Make right-click do something sensible
-(when (display-graphic-p)
-  (context-menu-mode))
 
 ;; Don't litter file system with *~ backup files; put them all inside
 ;; ~/.emacs.d/backup or wherever
@@ -194,74 +154,99 @@ If the new path's directories does not exist, create them."
 	(scroll-bar-mode 0)
 	(column-number-mode 1)
 	(show-paren-mode 1)
-  (setopt inhibit-splash-screen t)
+	(setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
+	(setopt display-time-default-load-average nil) ; this information is useless for most
+
+	;; Automatically reread from disk if the underlying file changes
+	(setopt auto-revert-avoid-polling t)
+	;; Some systems don't do file notifications well; see
+	;; https://todo.sr.ht/~ashton314/emacs-bedrock/11
+	(setopt auto-revert-interval 5)
+	(setopt auto-revert-check-vc-info t)
+	(global-auto-revert-mode)
+
+	;; Save history of minibuffer
+	(savehist-mode)
+	;; Move through windows with Ctrl-<arrow keys>
+	(windmove-default-keybindings 'control) ; You can use other modifiers here
+
+	;; Fix archaic defaults
+	(setopt sentence-end-double-space nil)
+
+	;; Make right-click do something sensible
+	(when (display-graphic-p)
+	  (context-menu-mode))
+	(setopt inhibit-splash-screen t)
+
 	(let* ((font-size
-					 (let* ((hostname (car (split-string (system-name) "\\." t)))
-									(size-by-hostname '(("deimos" . 9)
-																			("phobos" . 13)))
-									(default-size 9))
-						 (or (cdr (assoc hostname size-by-hostname))
-								 default-size)))
-				 (font-height (* font-size 10)))
-		(set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
-		(set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
-		(setq-default line-spacing 0.2)
-		(custom-theme-set-faces
-			'user
-			`(variable-pitch ((t (:family "Atkinson Hyperlegible Next" :height ,font-height))))
-			`(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
+		(let* ((hostname (car (split-string (system-name) "\\." t)))
+		       (size-by-hostname '(("deimos" . 9)
+					   ("phobos" . 13)))
+		       (default-size 9))
+		  (or (cdr (assoc hostname size-by-hostname))
+		      default-size)))
+	       (font-height (* font-size 10)))
+	  (set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
+	  (set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
+	  (setq-default line-spacing 0.2)
+	  (custom-theme-set-faces
+	   'user
+	   `(variable-pitch ((t (:family "Atkinson Hyperlegible Next" :height ,font-height))))
+	   `(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
 	(add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2))
 	(load-theme 'modus-vivendi))          ; for light theme, use modus-operand
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-;;;   Optional extras
+;;;   Navigation
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Uncomment the (load-file …) lines or copy code from the extras/ elisp files
-;; as desired
+(use-package evil
+  :ensure t
+  :init
+  (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
+  (setq evil-want-keybinding nil)
+  :config
+  (evil-mode 1))
 
-;; UI/UX enhancements mostly focused on minibuffer and autocompletion interfaces
-;; These ones are *strongly* recommended!
-;(load-file (expand-file-name "extras/base.el" user-emacs-directory))
+(use-package evil-collection
+  :after evil
+  :ensure t
+  :config
+  (evil-collection-init))
 
-;; Packages for software development
-;(load-file (expand-file-name "extras/dev.el" user-emacs-directory))
+;; Define the leader-key macro early so native compilation can expand it
+;; before any package configs run.
+(eval-and-compile
+  (require 'general)
+  (general-create-definer dysthesis/start/leader-keys
+    :states '(normal insert visual motion emacs)
+    :keymaps 'override
+    :prefix "SPC"           ;; Set leader key
+    :global-prefix "C-SPC")) ;; Set global leader key
 
-;; Vim-bindings in Emacs (evil-mode configuration)
-;(load-file (expand-file-name "extras/vim-like.el" user-emacs-directory))
-
-;; Org-mode configuration
-;; WARNING: need to customize things inside the elisp file before use! See
-;; the file extras/org-intro.txt for help.
-;(load-file (expand-file-name "extras/org.el" user-emacs-directory))
-
-;; Email configuration in Emacs
-;; WARNING: needs the `mu' program installed; see the elisp file for more
-;; details.
-;(load-file (expand-file-name "extras/email.el" user-emacs-directory))
-
-;; Tools for academic researchers
-;(load-file (expand-file-name "extras/researcher.el" user-emacs-directory))
+(use-package general
+  :ensure t
+  :after (evil)
+  :config
+  (general-evil-setup)
+  (dysthesis/start/leader-keys
+   "." '(find-file :wk "Find file")
+   "TAB" '(comment-line :wk "Comment lines")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
-;;;   Built-in customization framework
+;;;   Git
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages '(which-key)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+(use-package transient
+  :ensure t)
 
-(setq gc-cons-threshold (or bedrock--initial-gc-threshold 800000))
+(use-package magit
+  :ensure t
+  :after (transient)
+  :config
+  (dysthesis/start/leader-keys
+    "g g" '(magit :wk "Magit")))
