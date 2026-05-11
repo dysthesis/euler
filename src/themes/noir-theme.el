@@ -374,7 +374,7 @@
    `(org-level-8                       ((t (:foreground ,gray5))))
    `(org-headline-done                 ((t (:foreground ,gray5 :strike-through nil))))
    `(org-headline-todo                 ((t (:foreground ,luster))))
-   `(org-todo                          ((t (:foreground ,red :weight bold))))
+   `(org-todo                          ((t (:foreground ,orange :weight bold))))
    `(org-done                          ((t (:foreground ,gray5 :weight bold))))
    `(org-priority                      ((t (:foreground ,lack :weight bold))))
    `(org-tag                           ((t (:foreground ,gray5))))

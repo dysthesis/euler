@@ -33,7 +33,7 @@ Need to tell eglot where to find language servers for the languages I use, and t
 ** TODO Catching issues for this config
 See if I can do static analysis (see [[https://github.com/emacs-elsa/Elsa][elsa]]) as well as dynamic analysis (testing? I have no idea how that would work for an Emacs config) to get it to find issues with the config before I do. Because I don't want to have to deal with it when I'm in the middle of doing something.
 
-** TODO Org-mode touchups
+** DONE Org-mode touchups
 Add as much UI improvements to Org-mode wihout slowing it down. Surely I can fit in Org-modern and Olivetti here.
 
 ** TODO Modularisation
