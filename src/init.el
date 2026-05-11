@@ -527,3 +527,48 @@
 (use-package tempel-collection
   :ensure t
   :after tempel)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;
+;;;   Org-mode
+;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-package org
+  :hook ((org-mode . visual-line-mode)  ; wrap lines at word breaks
+         (org-mode . flyspell-mode)     ; spell checking!
+	 (org-mode . org-indent-mode))    
+  :config
+  (setq org-directory "~/Documents/Org"
+	org-agenda-files '("inbox.org" "tasks.org")))
+
+(use-package org-modern
+  :ensure t
+  :after (org)
+  :config
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+  
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-modern-star 'replace
+   org-pretty-entities t
+   org-agenda-tags-column 0
+   org-ellipsis "…")
+  (with-eval-after-load 'org (global-org-modern-mode)))
+
+;; centre text for writing
+(use-package olivetti
+  :ensure t
+  :config
+  (defun dysthesis/org-mode-setup ()
+    (org-indent-mode)
+    (olivetti-mode)
+    (display-line-numbers-mode 0)
+    (olivetti-set-width 90))
+  (add-hook 'org-mode-hook 'dysthesis/org-mode-setup))
