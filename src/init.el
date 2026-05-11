@@ -477,6 +477,11 @@
   (dysthesis/start/leader-keys
     "g g" '(magit :wk "Magit")))
 
+(use-package magit-todos
+	:ensure t
+  :after magit
+  :config (magit-todos-mode 1))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;;   Development

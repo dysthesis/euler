@@ -39,7 +39,8 @@ Add as much UI improvements to Org-mode wihout slowing it down. Surely I can fit
 ** TODO Modularisation
 Make a module system, ideally something simlar to Doom's (but lighter, of course -- this is just a personal config). Need it to be composable, which means things like enabling certain sections of a module only when other modules are activated. This is useful for, say, language-specific LSP config, where the config lives in the language's own module but is activated only when the LSP module is active.
 
-** TODO UI touchups
+** DONE UI touchups
+- State "DONE"       from "TODO"       [2026-05-11 Mon 20:33]
 Miscellaneous UI stuff, including
 
 - [[https://github.com/alphapapa/magit-todos][magit-todo]],
