@@ -3,6 +3,11 @@
 (when (< emacs-major-version 29)
   (error "Euler only works with Emacs 29 and newer; you have version %s" emacs-major-version))
 
+;; Packages come from Nix; keep `:ensure t' as a declaration for the Nix
+;; scanner but make use-package skip the runtime package-install step.
+(setq use-package-always-ensure nil
+      use-package-ensure-function 'ignore)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;;   Basic settings
@@ -114,8 +119,12 @@
      'user
      `(variable-pitch ((t (:family "Atkinson Hyperlegible Next" :height ,font-height))))
      `(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
-  (add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2))
-  (load-theme 'modus-vivendi)) ; for light theme, use modus-operand
+  (add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2)))
+
+;; Theme
+(add-to-list 'custom-theme-load-path
+             (expand-file-name "themes" user-emacs-directory))
+(load-theme 'noir t)
 
 (use-package ligature
   :ensure t

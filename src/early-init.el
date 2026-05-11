@@ -6,6 +6,12 @@
 (setq warning-suppress-log-types '((comp) (bytecomp)))
 (setq native-comp-async-report-warnings-errors 'silent)
 
+;; Packages are baked in by Nix (via emacsWithPackagesFromUsePackage).
+;; Let `package-initialize' still run at startup so the bundled autoloads are
+;; registered, but block any runtime network use so package.el cannot try to
+;; install or refresh archives.
+(setq package-archives nil)
+
 ;; Silence stupid startup message
 (setq inhibit-startup-echo-area-message (user-login-name))
 

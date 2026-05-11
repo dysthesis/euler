@@ -8,6 +8,11 @@
         statix # static analyser
         deadnix # dead code analyser
         alejandra # formatter
+
+        grim
+        slurp
+        swappy
+        defuddle-cli
       ];
     };
   };
