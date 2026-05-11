@@ -72,6 +72,37 @@
   (add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2))
   (load-theme 'modus-vivendi)) ; for light theme, use modus-operand
 
+(use-package ligature
+  :ensure t
+  :config
+  ;; Terminal emulator buffers need grid-faithful rendering.
+  (add-to-list 'ligature-ignored-major-modes 'ghostel-mode)
+  ;; Enable the "www" ligature in every possible major mode
+  (ligature-set-ligatures 't '("www"))
+  ;; Enable traditional text ligatures in prose and documentation modes.
+  (ligature-set-ligatures '(eww-mode org-mode markdown-mode help-mode Info-mode Man-mode woman-mode)
+                          '("ff" "fi" "fl" "ffi" "ffl"))
+  ;; Enable programming ligatures in programming modes.
+  (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
+                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+                                       "\\\\" "://"))
+  ;; Typst derives from text-mode, so give it code-facing ligatures explicitly.
+  (ligature-set-ligatures 'typst-ts-mode '("->" "=>" "<-" "<=" ">=" "==" "!=" "===" "!=="
+                                           ":=" "::" "..." ".." "&&" "||" "//" "/*" "*/"))
+  ;; Enables ligature checks globally in all buffers.  You can also do it
+  ;; per mode with `ligature-mode'.
+  (global-ligature-mode t))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;;   Discovery aids
