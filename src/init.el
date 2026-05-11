@@ -560,13 +560,13 @@
    org-pretty-entities t
    org-agenda-tags-column 0
    org-ellipsis " ↪")
-  (with-eval-after-load 'org (global-org-modern-mode)
   ;; Instead of just two states (TODO, DONE) we set up a few different states
   ;; that a task can be in. Run
   ;;     M-x describe-variable RET org-todo-keywords RET
   ;; for documentation on how these keywords work.
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "WAITING(w@/!)" "STARTED(s!)" "|" "DONE(d!)" "OBSOLETE(o@)")))))
+        '((sequence "TODO(t)" "WAITING(w@/!)" "STARTED(s!)" "|" "DONE(d!)" "OBSOLETE(o@)")))
+  (with-eval-after-load 'org (global-org-modern-mode))) 
 
 ;; centre text for writing
 (use-package olivetti
