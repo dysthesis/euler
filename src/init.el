@@ -373,23 +373,27 @@
   :ensure t)
 
 (use-package eglot
-  ;; no :ensure t here because it's built-in
-
-  ;; Configure hooks to automatically turn-on eglot for selected modes
-  ; :hook
-  ; (((python-mode ruby-mode elixir-mode) . eglot-ensure))
+  :hook
+  (((nix-mode) . eglot-ensure))
 
   :custom
   (eglot-send-changes-idle-time 0.1)
-  (eglot-extend-to-xref t)              ; activate Eglot in referenced non-project files
-
+  (eglot-extend-to-xref t)
   :config
+  (dysthesis/start/leader-keys
+     "c" '(:ignore t :which-key "Code")
+     "c <escape>" '(keyboard-escape-quit :which-key t)
+     "c r" '(eglot-rename :which-key "Rename")
+     "c a" '(eglot-code-actions :which-key "Actions"))
   (fset #'jsonrpc--log-event #'ignore)  ; massive perf boost---don't log every event
   ;; Sometimes you need to tell Eglot where to find the language server
-  ; (add-to-list 'eglot-server-programs
-  ;              '(haskell-mode . ("haskell-language-server-wrapper" "--lsp")))
-  )
+  (add-to-list 'eglot-server-programs
+               '(nix-mode . ("nil"))))
 
+(use-package nix-mode
+  :ensure t
+  :mode "\\.nix\\'"
+  :hook (nix-mode . eglot-ensure))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
