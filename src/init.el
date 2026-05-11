@@ -27,6 +27,8 @@
   (scroll-bar-mode 0)
   (column-number-mode 1)
   (show-paren-mode 1)
+  (setopt line-number-mode t)                        ; Show current line in modeline
+  (setq display-line-numbers-type 'relative)
   (setopt initial-major-mode 'fundamental-mode)  ; default mode for the *scratch* buffer
   (setopt display-time-default-load-average nil) ; this information is useless for most
 
@@ -212,7 +214,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Mode line information
-(setopt line-number-mode t)                        ; Show current line in modeline
 (setopt column-number-mode t)                      ; Show column as well
 
 (setopt x-underline-at-descent-line nil)           ; Prettier underlines
