@@ -3,12 +3,38 @@
 This repository contains my configuration for Emacs, wrapped with Nix.
 
 * Roadmap
+As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
-As of right now, it's highly incomplete. Some things I'm still working on for this includes
+** TODO touch up the Noir theme to cover more UI
+Need it to cover more UI, and leverage bolded/italicised/underlined text more in code, rather than just colours.
 
-- [ ] touching up the Noir theme (ported [[https://github.com/slugbyte/lackluster.nvim][lackluster.nvim]] but with the principles from [[https://tonsky.me/blog/syntax-highlighting/]]),
-- [ ] getting Nix to compile every Emacs Lisp file to =.eln= on build-time,
-- [ ] some language-specific dev setup (Rust, C, etc.),
-- [ ] debugging setup (using [[https://github.com/svaante/dape][dape]] to work with eglot instead of lsp-mode),
-- [ ] Org-mode touchups, and
-- [ ] modularisation.
+Some particular plugins to integrate better with this includes
+
+- magit (highlight diff background, not just text colouring),
+- solaire-mode,
+- Org-mode,
+- hl-todo,
+- /etc./
+
+** TODO Compile eln cache on Nix build
+Emacs will try to compile any Emacs Lisp file it gets its hands on to =.eln=. This is an issue because we're on Nix; we don't do that here. It gives off annoying errors when it fails to do so due to the configuration directory being on =/nix/store=, and thus, immutable.
+
+Therefore, we need to make Nix compile whatever =.el= files it sees on build to =.eln=, so Emacs doesn't need to do it during runtime.
+
+** TODO Separate state files from config files
+Likewise, Emacs complains whenever it tries to write, say, the =history= file, as we're pointing to the configuration directory in =/nix/store=, which again, it **cannot write to.** We need to tell Emacs to write state stuff somewhere else (ideally somewhere XDG-compliant, e.g. =~/.local/state/emacs= or =~/.local/state/euler=, if we want to semantically separate this flake's stuff from regular Emacs).
+
+** TODO All the debugging
+Get my hands on [[https://github.com/svaante/dape][dape]] to debug Rust, C, Zig.
+
+** TODO Language-specific development setup
+Need to tell eglot where to find language servers for the languages I use, and to also use it. Also tree-sitter stuff (/e.g./ folding; see if I can get it to [[https://matklad.github.io/2024/10/14/missing-ide-feature.html][fold method/function bodies on enter by default]])
+
+** TODO Catching issues for this config
+See if I can do static analysis (see [[https://github.com/emacs-elsa/Elsa][elsa]]) as well as dynamic analysis (testing? I have no idea how that would work for an Emacs config) to get it to find issues with the config before I do. Because I don't want to have to deal with it when I'm in the middle of doing something.
+
+** TODO Org-mode touchups
+Add as much UI improvements to Org-mode wihout slowing it down. Surely I can fit in Org-modern and Olivetti here.
+
+** TODO Modularisation
+Make a module system, ideally something simlar to Doom's (but lighter, of course -- this is just a personal config). Need it to be composable, which means things like enabling certain sections of a module only when other modules are activated. This is useful for, say, language-specific LSP config, where the config lives in the language's own module but is activated only when the LSP module is active.
