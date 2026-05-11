@@ -11,6 +11,8 @@ Need it to cover more UI, and leverage bolded/italicised/underlined text more in
 Some particular plugins to integrate better with this includes the following.
 
 *** TODO magit (highlight diff background, not just text colouring),
+Highlight diff background, not just text colouring. Use =gray1= or =gray2= for specifically magit background colour, to give it a distinct appearance from the rest of the window.
+
 *** DONE solaire-mode,
 - State "DONE"       from "TODO"       [2026-05-11 Mon 21:12]
 *** TODO Org-mode,
