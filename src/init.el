@@ -189,7 +189,29 @@ If the new path's directories does not exist, create them."
 
 (use-package emacs
   :config
-  (load-theme 'modus-vivendi))          ; for light theme, use modus-operandi
+	(tool-bar-mode 0)
+	(menu-bar-mode 0)
+	(scroll-bar-mode 0)
+	(column-number-mode 1)
+	(show-paren-mode 1)
+  (setopt inhibit-splash-screen t)
+	(let* ((font-size
+					 (let* ((hostname (car (split-string (system-name) "\\." t)))
+									(size-by-hostname '(("deimos" . 9)
+																			("phobos" . 13)))
+									(default-size 9))
+						 (or (cdr (assoc hostname size-by-hostname))
+								 default-size)))
+				 (font-height (* font-size 10)))
+		(set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
+		(set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
+		(setq-default line-spacing 0.2)
+		(custom-theme-set-faces
+			'user
+			`(variable-pitch ((t (:family "Atkinson Hyperlegible Next" :height ,font-height))))
+			`(fixed-pitch ((t (:family "JBMono Nerd Font" :height ,font-height))))))
+	(add-to-list 'face-font-rescale-alist '("Atkinson Hyperlegible Next" . 1.2))
+	(load-theme 'modus-vivendi))          ; for light theme, use modus-operand
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
