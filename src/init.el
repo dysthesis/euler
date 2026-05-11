@@ -194,12 +194,16 @@
   (add-to-list 'completion-at-point-functions #'cape-file))
 
 ;; Pretty icons for corfu
-(use-package kind-icon
-  :if (display-graphic-p)
+(use-package nerd-icons-corfu
   :ensure t
   :after corfu
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+  :init (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+(use-package nerd-icons-completion
+  :ensure t
+  :after marginalia
+  :config (nerd-icons-completion-mode)
+  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
