@@ -166,13 +166,7 @@
 (load-theme 'noir t) ;; My own custom theme
 (use-package solaire-mode
   :ensure t
-  :after (lackluster-theme)
-  :config
-  (setq solaire-mode-supported-themes
-        '(noir))
-  (when-let ((theme (car custom-enabled-themes)))
-    (solaire-mode--prepare-for-theme-a theme))
-  (solaire-global-mode +1))
+  :config (solaire-global-mode +1))
 
 (use-package ligature
   :ensure t

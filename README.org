@@ -5,17 +5,16 @@ This repository contains my configuration for Emacs, wrapped with Nix.
 * TODO Roadmap [3/15]
 As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
-** TODO Touch up the Noir theme to cover more UI
-- State "DONE"       from "TODO"       [2026-05-11 Mon 20:50]
+** TODO Touch up the Noir theme to cover more UI [1/4]
 Need it to cover more UI, and leverage bolded/italicised/underlined text more in code, rather than just colours.
 
-Some particular plugins to integrate better with this includes
+Some particular plugins to integrate better with this includes the following.
 
-- magit (highlight diff background, not just text colouring),
-- solaire-mode,
-- Org-mode,
-- hl-todo,
-- /etc./
+*** TODO magit (highlight diff background, not just text colouring),
+*** DONE solaire-mode,
+- State "DONE"       from "TODO"       [2026-05-11 Mon 21:12]
+*** TODO Org-mode,
+*** TODO hl-todo,
 
 ** TODO Compile eln cache on Nix build
 Emacs will try to compile any Emacs Lisp file it gets its hands on to =.eln=. This is an issue because we're on Nix; we don't do that here. It gives off annoying errors when it fails to do so due to the configuration directory being on =/nix/store=, and thus, immutable.

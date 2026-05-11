@@ -545,6 +545,11 @@
    ;; ---- Hl-todo (TODO/FIXME/XXX highlighters) ----
    `(hl-todo                           ((t (:foreground ,red :weight bold))))
 
+   ;; ---- solaire-mode ----
+   `(solaire-minibuffer-face              ((t (:inherit default :background ,gray2))))
+   `(solaire-hl-line-face              ((t (:inherit default :background ,gray2))))
+   `(solaire-org-hide-face              ((t (:inherit default :background ,gray2))))
+
    ;; ---- Widget ----
    `(widget-field                      ((t (:background ,gray2 :foreground ,luster))))
    `(widget-single-line-field          ((t (:background ,gray2 :foreground ,luster))))
