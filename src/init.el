@@ -22,6 +22,46 @@
 	  (json-mode . json-ts-mode)
 	  (css-mode . css-ts-mode)
 	  (python-mode . python-ts-mode)))
+  ;; Mode line information
+  (setopt column-number-mode t)                      ; Show column as well
+  
+  (setopt x-underline-at-descent-line nil)           ; Prettier underlines
+  (setopt switch-to-buffer-obey-display-actions t)   ; Make switching buffers more consistent
+  
+  (setopt show-trailing-whitespace nil)      ; By default, don't underline trailing spaces
+  (setopt indicate-buffer-boundaries 'left)  ; Show buffer top and bottom in the margin
+  
+  ;; Enable horizontal scrolling
+  (setopt mouse-wheel-tilt-scroll t)
+  (setopt mouse-wheel-flip-direction t)
+  
+  ;; We won't set these, but they're good to know about
+  ;;
+  ;; (setopt indent-tabs-mode nil)
+  ;; (setopt tab-width 4)
+  
+  ;; Misc. UI tweaks
+  (blink-cursor-mode -1)                                ; Steady cursor
+  (pixel-scroll-precision-mode)                         ; Smooth scrolling
+  
+  ;; Use common keystrokes by default
+  (cua-mode)
+  
+  ;; For terminal users, make the mouse more useful
+  
+  (xterm-mouse-mode 1)
+  
+  ;; Display line numbers in programming mode
+  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+  (setopt display-line-numbers-width 3)           ; Set a minimum width
+  
+  ;; Nice line wrapping when working with text
+  (add-hook 'text-mode-hook 'visual-line-mode)
+  
+  ;; Modes to highlight the current line with
+  (let ((hl-line-hooks '(text-mode-hook prog-mode-hook)))
+    (mapc (lambda (hook) (add-hook hook 'hl-line-mode)) hl-line-hooks))
+
   (tool-bar-mode 0)
   (menu-bar-mode 0)
   (scroll-bar-mode 0)
@@ -212,46 +252,6 @@
 ;;;   Interface enhancements/defaults
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Mode line information
-(setopt column-number-mode t)                      ; Show column as well
-
-(setopt x-underline-at-descent-line nil)           ; Prettier underlines
-(setopt switch-to-buffer-obey-display-actions t)   ; Make switching buffers more consistent
-
-(setopt show-trailing-whitespace nil)      ; By default, don't underline trailing spaces
-(setopt indicate-buffer-boundaries 'left)  ; Show buffer top and bottom in the margin
-
-;; Enable horizontal scrolling
-(setopt mouse-wheel-tilt-scroll t)
-(setopt mouse-wheel-flip-direction t)
-
-;; We won't set these, but they're good to know about
-;;
-;; (setopt indent-tabs-mode nil)
-;; (setopt tab-width 4)
-
-;; Misc. UI tweaks
-(blink-cursor-mode -1)                                ; Steady cursor
-(pixel-scroll-precision-mode)                         ; Smooth scrolling
-
-;; Use common keystrokes by default
-(cua-mode)
-
-;; For terminal users, make the mouse more useful
-
-(xterm-mouse-mode 1)
-
-;; Display line numbers in programming mode
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
-(setopt display-line-numbers-width 3)           ; Set a minimum width
-
-;; Nice line wrapping when working with text
-(add-hook 'text-mode-hook 'visual-line-mode)
-
-;; Modes to highlight the current line with
-(let ((hl-line-hooks '(text-mode-hook prog-mode-hook)))
-  (mapc (lambda (hook) (add-hook hook 'hl-line-mode)) hl-line-hooks))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
