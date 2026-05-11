@@ -28,7 +28,7 @@ Likewise, Emacs complains whenever it tries to write, say, the =history= file, a
 Get my hands on [[https://github.com/svaante/dape][dape]] to debug Rust, C, Zig.
 
 ** TODO Language-specific development setup
-Need to tell eglot where to find language servers for the languages I use, and to also use it. Also tree-sitter stuff (/e.g./ folding; see if I can get it to [[https://matklad.github.io/2024/10/14/missing-ide-feature.html][fold method/function bodies on enter by default]])
+Need to tell eglot where to find language servers for the languages I use, and to also use it. Also tree-sitter stuff (/e.g./ treesitter textobjects, folding; see if I can get it to [[https://matklad.github.io/2024/10/14/missing-ide-feature.html][fold method/function bodies on enter by default]]). Also, set up Lean (with nael-mode so it works with eglot, probably)!
 
 ** TODO Catching issues for this config
 See if I can do static analysis (see [[https://github.com/emacs-elsa/Elsa][elsa]]) as well as dynamic analysis (testing? I have no idea how that would work for an Emacs config) to get it to find issues with the config before I do. Because I don't want to have to deal with it when I'm in the middle of doing something.
@@ -38,3 +38,22 @@ Add as much UI improvements to Org-mode wihout slowing it down. Surely I can fit
 
 ** TODO Modularisation
 Make a module system, ideally something simlar to Doom's (but lighter, of course -- this is just a personal config). Need it to be composable, which means things like enabling certain sections of a module only when other modules are activated. This is useful for, say, language-specific LSP config, where the config lives in the language's own module but is activated only when the LSP module is active.
+
+** TODO UI touchups
+Miscellaneous UI stuff, including
+
+- [[https://github.com/alphapapa/magit-todos][magit-todo]],
+- [[https://github.com/tarsius/hl-todo][hl-todo]],
+- better status line, ideally without a plugin.
+
+** TODO Magit-forge
+Use to access GitHub (and Tangled?): https://github.com/magit/forge
+
+** TODO Parentheses manipulations
+Smartparens, paredit, etc. Let me add/change/remove parentheses with modal keybindins.
+
+** TODO Check out meow
+I have no idea how it works. If I can get it to replicate evil keybindings, I'm in. I'm not learning new modal keybindings, though.
+
+** TODO Try to integrate with =compile= better
+See if this can replace the need for any sort of terminal. This workflow is used by some people, e.g. Tsoding, [[https://andreyor.st/posts/2023-10-27-you-dont-need-a-terminal-emulator/][Andrey Listopadov]].
