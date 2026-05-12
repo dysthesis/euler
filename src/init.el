@@ -271,7 +271,11 @@
 (use-package orderless
   :ensure t
   :config
-  (setq completion-styles '(orderless)))
+  (setq completion-styles '(orderless-literal
+			    orderless-prefixes
+			    orderless-regexp
+			    orderless-initialism
+			    orderless-flex)))
 
 ;; Corfu: Popup completion-at-point
 (use-package corfu
