@@ -1,0 +1,18 @@
+{
+  "pins": {
+    "eglot-booster": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "jdtsmith",
+        "repo": "eglot-booster"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "cab7803c4f0adc7fff9da6680f90110674bb7a22",
+      "url": "https://github.com/jdtsmith/eglot-booster/archive/cab7803c4f0adc7fff9da6680f90110674bb7a22.tar.gz",
+      "hash": "sha256-xUBQrQpw+JZxcqT1fy/8C2tjKwa7sLFHXamBm45Fa4Y="
+    }
+  },
+  "version": 7
+}

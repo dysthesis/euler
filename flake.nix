@@ -3,19 +3,24 @@
   outputs = inputs @ {
     flake-parts,
     nixpkgs,
+    self,
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
       perSystem = {system, ...}: {
         _module.args.pkgs = import nixpkgs {
           inherit system;
-          overlays = [inputs.emacs-overlay.overlay];
+          overlays = [
+            inputs.emacs-overlay.overlay
+            self.overlays.default
+          ];
         };
       };
       imports = [
         ./nix/shell.nix
         ./nix/formatter.nix
         ./nix/packages
+        ./nix/overlays
 
         inputs.treefmt.flakeModule
       ];

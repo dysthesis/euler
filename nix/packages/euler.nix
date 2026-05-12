@@ -6,12 +6,14 @@
   lib,
   ripgrep,
   fd,
+  emacs-lsp-booster,
   ...
 }:
 let
   deps = [
     ripgrep
     fd
+    emacs-lsp-booster
   ];
 in symlinkJoin {
   name = "euler";

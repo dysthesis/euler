@@ -225,7 +225,7 @@
           ;; from project to project. Doom doesn't use BUG.
           ("BUG" error bold)
 	  ;; Performance tricks
-	  ("PERF" success bold)
+	  ("PERF" font-lock-constant-face bold)
           ;; Doom uses NOTE to indicate either A) this comment is about a code
           ;; omission, e.g. "I *would've* put X here, but I didn't because Y",
           ;; or B) it's a comment about a large section of code beyond the scope
@@ -532,6 +532,12 @@
   ;; Sometimes you need to tell Eglot where to find the language server
   (add-to-list 'eglot-server-programs
                '(nix-mode . ("nil"))))
+
+;; Speed bonus for LSP. Requires the `emacs-lsp-booster' binary.
+(use-package eglot-booster
+  :ensure t
+  :after eglot
+  :config (eglot-booster-mode))
 
 (use-package nix-mode
   :ensure t
