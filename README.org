@@ -2,7 +2,7 @@
 
 This repository contains my configuration for Emacs, wrapped with Nix.
 
-* TODO Roadmap [4/16]
+* TODO Roadmap [5/16]
 As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
 ** DONE VC packages installation layer
@@ -60,8 +60,11 @@ Use to access GitHub (and Tangled?): https://github.com/magit/forge
 ** TODO Parentheses manipulations
 Smartparens, paredit, etc. Let me add/change/remove parentheses with modal keybindins.
 
-** TODO Check out meow
+** DONE Check out meow
+- State "DONE"       from "TODO"       [2026-05-12 Tue 10:58]
 I have no idea how it works. If I can get it to replicate evil keybindings, I'm in. I'm not learning new modal keybindings, though.
+
+Turns out, meow can get Vim-ish binds, but not as well as Evil.
 
 ** TODO Try to integrate with =compile= better
 See if this can replace the need for any sort of terminal. This workflow is used by some people, e.g. Tsoding, [[https://andreyor.st/posts/2023-10-27-you-dont-need-a-terminal-emulator/][Andrey Listopadov]].
