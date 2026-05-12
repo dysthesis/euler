@@ -99,8 +99,8 @@
    `(font-lock-property-use-face       ((t (:inherit default))))
 
     ;; Declarations — hierarchy by weight/slant first, hue second.
-    `(font-lock-function-name-face      ((t (:foreground ,luster :weight bold))))
     `(font-lock-variable-name-face      ((t (:foreground ,blue))))
+    `(font-lock-function-name-face      ((t (:inherit font-lock-variable-name-face))))
     `(font-lock-property-name-face      ((t (:foreground ,gray8))))
     `(font-lock-type-face               ((t (:foreground ,gray8 :slant italic))))
 
@@ -120,12 +120,12 @@
    `(font-lock-doc-markup-face         ((t (:foreground ,yellow))))
 
    ;; Punctuation greyed.
-   `(font-lock-punctuation-face        ((t (:foreground ,gray5))))
-   `(font-lock-bracket-face            ((t (:foreground ,gray5))))
-   `(font-lock-delimiter-face          ((t (:foreground ,gray5))))
-   `(font-lock-operator-face           ((t (:foreground ,gray5))))
-   `(font-lock-misc-punctuation-face   ((t (:foreground ,gray5))))
-   `(font-lock-negation-char-face      ((t (:foreground ,gray5))))
+    `(font-lock-punctuation-face        ((t (:foreground ,gray5))))
+    `(font-lock-bracket-face            ((t (:foreground ,gray5))))
+    `(font-lock-delimiter-face          ((t (:foreground ,gray5))))
+    `(font-lock-operator-face           ((t (:foreground ,gray5))))
+    `(font-lock-misc-punctuation-face   ((t (:foreground ,gray5))))
+    `(font-lock-negation-char-face      ((t (:foreground ,gray5))))
 
    ;; Reserve red for actual warning sentinels (signal, deprecated, etc.).
    `(font-lock-warning-face            ((t (:foreground ,red :weight bold))))

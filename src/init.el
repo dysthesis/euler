@@ -30,6 +30,8 @@
 	  (json-mode . json-ts-mode)
 	  (css-mode . css-ts-mode)
 	  (python-mode . python-ts-mode)))
+  ;; Built-in *-ts-mode keeps bracket/delimiter/operator faces at level 4.
+  (setopt treesit-font-lock-level 4)
   ;; Mode line information
   (setopt column-number-mode t)                      ; Show column as well
   
