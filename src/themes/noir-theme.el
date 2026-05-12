@@ -566,7 +566,7 @@
     `(org-modern-internal-target        ((t (:foreground ,lack :underline t))))
     `(org-modern-radio-target           ((t (:foreground ,lack :underline t))))
     `(org-modern-done                   ((t (:foreground ,gray5 :background ,gray1 :box (:line-width -1 :color ,gray3)))))
-    `(org-modern-todo                   ((t (:foreground ,orange :background ,gray2 :weight bold :box (:line-width -1 :color ,gray4)))))
+    `(org-modern-todo                   ((t (:foreground ,bg :background ,orange :weight bold :box (:line-width -1 :color ,gray4)))))
     `(org-modern-priority               ((t (:foreground ,bg :background ,lack :weight bold))))
     `(org-modern-date-active            ((t (:foreground ,lack :background ,gray1 :box (:line-width -1 :color ,gray3)))))
     `(org-modern-time-active            ((t (:foreground ,bg :background ,lack :weight bold))))

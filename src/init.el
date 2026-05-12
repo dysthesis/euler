@@ -635,7 +635,13 @@
   ;;     M-x describe-variable RET org-todo-keywords RET
   ;; for documentation on how these keywords work.
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "WAITING(w@/!)" "STARTED(s!)" "|" "DONE(d!)" "OBSOLETE(o@)")))
+        '((sequence "TODO(t)" "WAITING(w@/!)" "STARTED(s!)" "|" "DONE(d!)" "OBSOLETE(o@)"))
+        org-modern-todo-faces
+        '(("TODO" :foreground "#000000" :background "#ffaa88" :weight bold)
+          ("WAITING" :foreground "#000000" :background "#abab77" :weight bold)
+          ("STARTED" :foreground "#000000" :background "#7788aa" :weight bold)
+          ("DONE" :foreground "#555555" :background "#080808" :weight bold)
+          ("OBSOLETE" :foreground "#555555" :background "#080808" :weight bold :strike-through t)))
   (with-eval-after-load 'org (global-org-modern-mode))) 
 
 ;; centre text for writing
