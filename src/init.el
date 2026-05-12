@@ -271,11 +271,12 @@
 (use-package orderless
   :ensure t
   :config
-  (setq completion-styles '(orderless-literal
-			    orderless-prefixes
-			    orderless-regexp
-			    orderless-initialism
-			    orderless-flex)))
+  (setq completion-styles '(orderless)
+	orderless-matching-styles '(orderless-literal     ;; the component is treated as a literal string that must occur in the candidate
+				    orderless-prefixes    ;; the component is split at word endings and each piece must match at a word boundary in the candidate, occurring in that order
+				    orderless-regexp      ;; the component is treated as a regexp that must match somewhere in the candidate
+				    orderless-initialism  ;; each character of the component should appear as the beginning of a word in the candidate, in order 
+				    orderless-flex)))     ;; When all else fails, fuzzy-match.
 
 ;; Corfu: Popup completion-at-point
 (use-package corfu
