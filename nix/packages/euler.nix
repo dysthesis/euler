@@ -22,6 +22,8 @@ in
     postBuild = ''
       wrapProgram $out/bin/emacs \
         --add-flags "--init-directory=${cfg}" \
+        --prefix EMACSNATIVELOADPATH : "${emacsWithPackages.deps}/share/emacs/native-lisp" \
+        --prefix EMACSNATIVELOADPATH : "${cfg}/share/emacs/native-lisp" \
         --prefix PATH ":" "${lib.makeBinPath deps}"
 
     '';

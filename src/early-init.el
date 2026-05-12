@@ -18,11 +18,13 @@
 ;; Since the config lives in Nix, tell Emacs to put state in XDG_STATE_HOME, where
 ;; it is able to write to it.
 (let* ((store-dir (file-name-directory (or load-file-name buffer-file-name)))
-       (state-root (expand-file-name "euler"
-                                         (or (getenv "XDG_STATE_HOME")
-                                             (expand-file-name "~/.local/state/")))))
-	(add-to-list 'custom-theme-load-path
-							 (expand-file-name "themes" store-dir))
+       (state-root
+        (expand-file-name "euler"
+                          (or (getenv "XDG_STATE_HOME")
+                              (expand-file-name "~/.local/state/"))))
+       (native-lisp-dir (expand-file-name "share/emacs/native-lisp" store-dir)))
+  (add-to-list 'custom-theme-load-path
+               (expand-file-name "themes" store-dir))
   ;; Keep config in the store; direct all writable state elsewhere.
   (setq user-init-file        (expand-file-name "init.el" store-dir)
         early-init-file       (expand-file-name "early-init.el" store-dir)
@@ -30,7 +32,18 @@
                                (expand-file-name "emacs" state-root))
         package-user-dir      (expand-file-name "elpa" user-emacs-directory)
         package-quickstart    nil
-        package-quickstart-file (expand-file-name "package-quickstart.el" user-emacs-directory)))
+        package-quickstart-file (expand-file-name "package-quickstart.el" user-emacs-directory))
+  (when (boundp 'native-comp-eln-load-path)
+    (let ((state-eln-cache (expand-file-name "eln-cache/" user-emacs-directory))
+          (kept-native-paths nil))
+      (dolist (dir native-comp-eln-load-path)
+        (when (and (stringp dir)
+                   (not (string-prefix-p store-dir (expand-file-name dir)))
+                   (not (string= native-lisp-dir (directory-file-name dir))))
+          (push dir kept-native-paths)))
+      (setq native-comp-eln-load-path
+            (append (list native-lisp-dir state-eln-cache)
+                    (nreverse kept-native-paths))))))
 
 ;; Default frame configuration: full screen, good-looking title bar on macOS
 (setq frame-resize-pixelwise t)

@@ -3,13 +3,14 @@
   emacs,
 }: let
   sources = import ./npins;
+  pinnedSources = builtins.removeAttrs sources ["__functor"];
   base = pkgs.emacsPackagesFor emacs;
 
   # Build a source from npins into an Emacs package.
-  buildOne = pkgs: name: source: let
-    imported = import source {};
+  buildOne = epkgs: name: source: let
+    imported = source {};
   in
-    pkgs.trivialBuild {
+    epkgs.trivialBuild {
       pname = name;
       version = imported.revision or "unstable";
       src = imported.outPath;
@@ -23,10 +24,10 @@
     };
 in
   # Map the builder into all the sources
-  base.overrideScope'
+  base.overrideScope
   (
     final: prev:
       builtins.mapAttrs
       (name: source: buildOne final name source)
-      sources
+      pinnedSources
   )
