@@ -455,9 +455,10 @@
   :demand t
   :after (avy embark-consult)
   :bind (("C-c a" . embark-act))        ; bind this to an easy key to hit
-  :init
+  :config
   ;; Add the option to run embark when using avy
   (defun euler/avy-action-embark (pt)
+    "Run Embark at PT after jumping there with Avy."
     (unwind-protect
         (save-excursion
           (goto-char pt)
@@ -510,9 +511,9 @@
 
 ;; Project management
 (use-package project
-  :custom
+  :config
   (when (>= emacs-major-version 30)
-    (project-mode-line t)))         ; show project name in modeline
+    (setopt project-mode-line t))) ; show project name in modeline
 
 (use-package markdown-mode
   :ensure t
@@ -526,7 +527,7 @@
 
 (use-package eglot
   :hook
-  (((nix-mode) . eglot-ensure))
+  ((nix-mode . eglot-ensure))
 
   :custom
   (eglot-send-changes-idle-time 0.1)
@@ -587,6 +588,7 @@
   ;; Make a function that adds the tempel expansion function to the
   ;; list of completion-at-point-functions (capf).
   (defun tempel-setup-capf ()
+    "Add Tempel expansion to local completion-at-point functions."
     (add-hook 'completion-at-point-functions #'tempel-expand -1 'local))
   ;; Put tempel-expand on the list whenever you start programming or
   ;; writing prose.
@@ -649,6 +651,7 @@
   :ensure t
   :config
   (defun dysthesis/org-mode-setup ()
+    "Enable prose-focused display tweaks for Org buffers."
     (org-indent-mode)
     (olivetti-mode)
     (display-line-numbers-mode 0)

@@ -1,7 +1,11 @@
 ;;; Mainly from emacs-bedrock
 ;; Startup speed, annoyance suppression
-(setq bedrock--initial-gc-threshold gc-cons-threshold)
+(defvar euler--initial-gc-threshold gc-cons-threshold
+  "GC threshold before startup tuning.")
 (setq gc-cons-threshold 10000000)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold euler--initial-gc-threshold)))
 (setq byte-compile-warnings '(not obsolete))
 (setq warning-suppress-log-types '((comp) (bytecomp)))
 (setq native-comp-async-report-warnings-errors 'silent)
@@ -42,8 +46,8 @@
                    (not (string= native-lisp-dir (directory-file-name dir))))
           (push dir kept-native-paths)))
       (setq native-comp-eln-load-path
-            (append (list native-lisp-dir state-eln-cache)
-                    (nreverse kept-native-paths))))))
+            (cons native-lisp-dir
+                  (cons state-eln-cache (nreverse kept-native-paths)))))))
 
 ;; Default frame configuration: full screen, good-looking title bar on macOS
 (setq frame-resize-pixelwise t)
