@@ -2,7 +2,7 @@
 
 This repository contains my configuration for Emacs, wrapped with Nix.
 
-* TODO Roadmap [6/16]
+* TODO Roadmap [7/16]
 As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
 ** DONE VC packages installation layer
@@ -73,5 +73,8 @@ See if this can replace the need for any sort of terminal. This workflow is used
 ** TODO Keybinds to quickly navigate and resize panes
  Configure bindings similar to vim-tmux-navigator
 
-** TODO Project management
+** DONE Project management
+- State "DONE"       from "TODO"       [2026-05-12 Tue 11:33]
 See if I can make a fuzzy finder over known projects with just =project.el=, similar to =projectile= or =tmux-sessionizer=.
+
+Turns out, =project.el= already does that, with =C-x p p=
