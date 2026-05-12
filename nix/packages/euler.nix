@@ -8,22 +8,22 @@
   fd,
   emacs-lsp-booster,
   ...
-}:
-let
+}: let
   deps = [
     ripgrep
     fd
     emacs-lsp-booster
   ];
-in symlinkJoin {
-  name = "euler";
-  paths = [emacsWithPackages];
-  buildInputs = [makeWrapper];
-  postBuild = ''
-    wrapProgram $out/bin/emacs \
-      --add-flags "--init-directory=${cfg}" \
-      --prefix PATH ":" "${lib.makeBinPath deps}"
+in
+  symlinkJoin {
+    name = "euler";
+    paths = [emacsWithPackages];
+    buildInputs = [makeWrapper];
+    postBuild = ''
+      wrapProgram $out/bin/emacs \
+        --add-flags "--init-directory=${cfg}" \
+        --prefix PATH ":" "${lib.makeBinPath deps}"
 
-  '';
-  meta.mainProgram = "emacs";
-}
+    '';
+    meta.mainProgram = "emacs";
+  }
