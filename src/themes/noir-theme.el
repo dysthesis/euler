@@ -102,7 +102,7 @@
     `(font-lock-variable-name-face      ((t (:foreground ,blue))))
     `(font-lock-function-name-face      ((t (:inherit font-lock-variable-name-face))))
     `(font-lock-property-name-face      ((t (:foreground ,gray8))))
-    `(font-lock-type-face               ((t (:foreground ,gray8 :slant italic))))
+    `(font-lock-type-face               ((t (:foreground ,gray7 :slant italic))))
 
     ;; Constants — literals stay greyscale; green is semantic success only.
     `(font-lock-string-face             ((t (:foreground ,gray7))))
