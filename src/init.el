@@ -378,6 +378,15 @@
   :config
   (evil-collection-init))
 
+;; Quickly add parentheses around a selection by using `S-<paren>'
+(use-package evil-surround
+  :ensure t
+  :config
+  (global-evil-surround-mode 1))
+
+(use-package evil-textobj-tree-sitter
+  :ensure t)
+
 ;; Define the leader-key macro early so native compilation can expand it
 ;; before any package configs run.
 (eval-and-compile
