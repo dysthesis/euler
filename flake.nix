@@ -12,6 +12,8 @@
           inherit system;
           overlays = [
             inputs.emacs-overlay.overlay
+            # Consume our own overlay so emacsWithPackages* can find
+            # our vc-packages
             self.overlays.default
           ];
         };
