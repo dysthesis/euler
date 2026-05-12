@@ -1,4 +1,4 @@
-;; Mainly from emacs-bedrock
+;;; Mainly from emacs-bedrock
 ;; Startup speed, annoyance suppression
 (setq bedrock--initial-gc-threshold gc-cons-threshold)
 (setq gc-cons-threshold 10000000)
@@ -14,6 +14,23 @@
 
 ;; Silence stupid startup message
 (setq inhibit-startup-echo-area-message (user-login-name))
+
+;; Since the config lives in Nix, tell Emacs to put state in XDG_STATE_HOME, where
+;; it is able to write to it.
+(let* ((store-dir (file-name-directory (or load-file-name buffer-file-name)))
+       (state-root (expand-file-name "euler"
+                                         (or (getenv "XDG_STATE_HOME")
+                                             (expand-file-name "~/.local/state/")))))
+	(add-to-list 'custom-theme-load-path
+							 (expand-file-name "themes" store-dir))
+  ;; Keep config in the store; direct all writable state elsewhere.
+  (setq user-init-file        (expand-file-name "init.el" store-dir)
+        early-init-file       (expand-file-name "early-init.el" store-dir)
+        user-emacs-directory  (file-name-as-directory
+                               (expand-file-name "emacs" state-root))
+        package-user-dir      (expand-file-name "elpa" user-emacs-directory)
+        package-quickstart    nil
+        package-quickstart-file (expand-file-name "package-quickstart.el" user-emacs-directory)))
 
 ;; Default frame configuration: full screen, good-looking title bar on macOS
 (setq frame-resize-pixelwise t)

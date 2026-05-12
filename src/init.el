@@ -160,9 +160,6 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Theme
-(add-to-list 'custom-theme-load-path
-             (expand-file-name "themes" user-emacs-directory))
 (load-theme 'noir t) ;; My own custom theme
 (use-package solaire-mode
   :ensure t

@@ -2,7 +2,7 @@
 
 This repository contains my configuration for Emacs, wrapped with Nix.
 
-* TODO Roadmap [5/16]
+* TODO Roadmap [6/16]
 As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
 ** DONE VC packages installation layer
@@ -27,7 +27,8 @@ Emacs will try to compile any Emacs Lisp file it gets its hands on to =.eln=. Th
 
 Therefore, we need to make Nix compile whatever =.el= files it sees on build to =.eln=, so Emacs doesn't need to do it during runtime.
 
-** TODO Separate state files from config files
+** DONE Separate state files from config files
+- State "DONE"       from "TODO"       [2026-05-12 Tue 11:32]
 Likewise, Emacs complains whenever it tries to write, say, the =history= file, as we're pointing to the configuration directory in =/nix/store=, which again, it **cannot write to.** We need to tell Emacs to write state stuff somewhere else (ideally somewhere XDG-compliant, e.g. =~/.local/state/emacs= or =~/.local/state/euler=, if we want to semantically separate this flake's stuff from regular Emacs).
 
 ** TODO All the debugging
