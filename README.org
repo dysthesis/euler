@@ -22,6 +22,9 @@ Highlight diff background, not just text colouring. Use =gray1= or =gray2= for s
 *** TODO Org-mode,
 *** TODO hl-todo,
 
+*** TODO Colour tweaks
+- Make string grey instead of green; in fact, make any literal values (ints, strings, chars, etc.) some shade of grey.
+- Have different colours for types and names; having it be =lack= and =blue= renders them too similar, visually difficult to distinguish.
 ** TODO Compile eln cache on Nix build
 Emacs will try to compile any Emacs Lisp file it gets its hands on to =.eln=. This is an issue because we're on Nix; we don't do that here. It gives off annoying errors when it fails to do so due to the configuration directory being on =/nix/store=, and thus, immutable.
 
