@@ -730,6 +730,7 @@
 ;; Project management
 (use-package project
   :config
+  (add-to-list 'project-vc-extra-root-markers "Cargo.toml")
   (when (>= emacs-major-version 30)
     (setopt project-mode-line t))) ; show project name in modeline
 
@@ -742,6 +743,28 @@
 
 (use-package json-mode
   :ensure t)
+
+(defvar euler-tool-bin-directories
+  (delete-dups
+   (delq nil
+         (mapcar (lambda (program)
+                   (when-let ((path (executable-find program)))
+                     (directory-file-name (file-name-directory path))))
+                 '("emacs-lsp-booster"))))
+  "Tool directories from Euler's startup PATH to preserve in local envs.")
+
+(defun euler/prepend-to-local-path (directories)
+  "Prepend DIRECTORIES to buffer-local PATH and `exec-path'."
+  (let (merged)
+    (dolist (dir (append directories
+                         (split-string (or (getenv "PATH") "") path-separator t)))
+      (when (and (stringp dir)
+                 (not (string-empty-p dir))
+                 (not (member dir merged)))
+        (push dir merged)))
+    (setq merged (nreverse merged))
+    (setenv "PATH" (string-join merged path-separator))
+    (setq-local exec-path (append merged (and (memq nil exec-path) '(nil))))))
 
 (use-package eglot
   :hook
@@ -763,12 +786,16 @@
   (fset #'jsonrpc--log-event #'ignore)  ; massive perf boost---don't log every event
   ;; Sometimes you need to tell Eglot where to find the language server
   (add-to-list 'eglot-server-programs
-               '(nix-mode . ("nil"))))
+               '(nix-mode . ("nil")))
+  (add-to-list 'eglot-server-programs
+               '(((rustic-mode :language-id "rust") rust-mode rust-ts-mode)
+                 . ("rust-analyzer"))))
 
 ;; Speed bonus for LSP. Requires the `emacs-lsp-booster' binary.
 (use-package eglot-booster
   :ensure t
   :after eglot
+  :if (executable-find "emacs-lsp-booster")
   :config (eglot-booster-mode))
 
 (use-package nix-mode
@@ -776,10 +803,71 @@
   :mode "\\.nix\\'"
   :hook (nix-mode . eglot-ensure))
 
+(use-package rust-mode
+  :ensure t
+  :defer t
+  :init
+  (setq rust-mode-treesitter-derive t
+        rust-indent-method-chain t))
+
+(use-package rustic
+  :ensure t
+  :mode ("\\.rs\\'" . rustic-mode)
+  :hook (rustic-mode . eglot-ensure)
+  :init
+  (setq rustic-babel-format-src-block nil
+        rustic-format-trigger nil
+        rustic-lsp-client 'eglot
+        rustic-lsp-setup-p nil)
+  :config
+  (defun euler/rust-cargo-audit ()
+    "Run cargo audit for the current Rust project."
+    (interactive)
+    (rustic-run-cargo-command `(,(rustic-cargo-bin) "audit")
+                              (list :clippy-fix t
+                                    :mode 'rustic-cargo-custom-command-mode)))
+
+  (with-eval-after-load 'org-src
+    (autoload 'org-babel-execute:rustic "rustic-babel")
+    (defalias 'org-babel-execute:rust #'org-babel-execute:rustic)
+    (add-to-list 'org-src-lang-modes '("rust" . rustic)))
+
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*\\(rustic-compilation\\|cargo-run\\)"
+                 (display-buffer-reuse-window display-buffer-at-bottom)
+                 (window-height . 0.25)))
+
+  (dysthesis/start/leader-keys
+    :keymaps 'rustic-mode-map
+    "m b" '(:ignore t :wk "Build")
+    "m b a" '(euler/rust-cargo-audit :wk "Cargo audit")
+    "m b b" '(rustic-cargo-build :wk "Cargo build")
+    "m b B" '(rustic-cargo-bench :wk "Cargo bench")
+    "m b c" '(rustic-cargo-check :wk "Cargo check")
+    "m b C" '(rustic-cargo-clippy :wk "Cargo clippy")
+    "m b d" '(rustic-cargo-build-doc :wk "Cargo doc")
+    "m b D" '(rustic-cargo-doc :wk "Cargo doc --open")
+    "m b f" '(rustic-cargo-fmt :wk "Cargo fmt")
+    "m b n" '(rustic-cargo-new :wk "Cargo new")
+    "m b o" '(rustic-cargo-outdated :wk "Cargo outdated")
+    "m b r" '(rustic-cargo-run :wk "Cargo run")
+    "m t" '(:ignore t :wk "Cargo test")
+    "m t a" '(rustic-cargo-test :wk "All")
+    "m t t" '(rustic-cargo-current-test :wk "Current test")))
+
 ;; Load direnv environments from .envrc
 (use-package envrc
   :ensure t
-  :config (envrc-global-mode))
+  :config
+  (defun euler/envrc-preserve-tool-paths (buffer result)
+    "Keep Euler-provided tools discoverable after envrc updates BUFFER."
+    (with-current-buffer buffer
+      (when (and (listp result)
+                 euler-tool-bin-directories)
+        (euler/prepend-to-local-path euler-tool-bin-directories))))
+
+  (advice-add 'envrc--apply :after #'euler/envrc-preserve-tool-paths)
+  (envrc-global-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
