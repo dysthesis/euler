@@ -21,7 +21,7 @@
               (minibufferp)
               (string-prefix-p
                " " (buffer-name (or (buffer-base-buffer)
-                                     (current-buffer)))))
+                                    (current-buffer)))))
     (setq-local euler-inhibit-local-var-hooks t)
     (let ((hook-var (intern (format "%s-local-vars-hook" major-mode))))
       (unless (boundp hook-var)
@@ -102,7 +102,7 @@
 
   ;; Persist kill-ring across sessions
   (setq savehist-additional-variables
-      '(search-ring regexp-search-ring kill-ring))
+	'(search-ring regexp-search-ring kill-ring))
   ;; Strip text properties that bloats the savehist file.
   (add-hook 'savehist-save-hook
             (lambda ()
@@ -450,9 +450,9 @@
                                 (org-mode . "org")
                                 (markdown-mode . "md"))
                               nil nil #'eq)
-                  (replace-regexp-in-string
-                   "\\(?:-ts\\)?-mode\\'" ""
-                   (symbol-name major-mode)))
+                   (replace-regexp-in-string
+                    "\\(?:-ts\\)?-mode\\'" ""
+                    (symbol-name major-mode)))
                'face 'euler-mode-line-mode)))
 
 (defun euler/mode-line-position ()
@@ -661,15 +661,15 @@
   :config
   (general-evil-setup)
   (dysthesis/start/leader-keys
-   "." '(find-file :wk "Find file")
-   "TAB" '(comment-line :wk "Comment lines"))
+    "." '(find-file :wk "Find file")
+    "TAB" '(comment-line :wk "Comment lines"))
   (dysthesis/start/leader-keys
-      "f" '(:ignore t :wk "Find")
-      "f r" '(consult-recent-file :wk "Recent files")
-      "f f" '(consult-fd :wk "Fd search for files")
-      "f g" '(consult-ripgrep :wk "Ripgrep search in files")
-      "f l" '(consult-line :wk "Find line")
-      "f i" '(consult-imenu :wk "Imenu buffer locations")))
+    "f" '(:ignore t :wk "Find")
+    "f r" '(consult-recent-file :wk "Recent files")
+    "f f" '(consult-fd :wk "Fd search for files")
+    "f g" '(consult-ripgrep :wk "Ripgrep search in files")
+    "f l" '(consult-line :wk "Find line")
+    "f i" '(consult-imenu :wk "Imenu buffer locations")))
 
 (use-package avy
   :ensure t
@@ -746,16 +746,16 @@
 
 (use-package forge
   :ensure t
-	:defer
+  :defer
   :after magit
   :config
   (setq auth-sources '("~/.authinfo.gpg"))
-	(setq forge-bug-reference-remote-files nil
+  (setq forge-bug-reference-remote-files nil
         forge-database-file
         (expand-file-name "forge-database.sqlite" user-cache-directory)))
 
 (use-package magit-todos
-	:ensure t
+  :ensure t
   :after magit
   :config (magit-todos-mode 1))
 
@@ -973,7 +973,7 @@ every mode."
        (cons (cons name command)
              (assq-delete-all name (symbol-value 'apheleia-formatters)))))
 
-(use-package apheleia
+(use-package apheleia ;; stuff
   :ensure t
   :demand t
   :init
@@ -1253,10 +1253,10 @@ every mode."
   (setq read-process-output-max (* 4 1024 1024))
 
   (dysthesis/start/leader-keys
-     "c" '(:ignore t :which-key "Code")
-     "c <escape>" '(keyboard-escape-quit :which-key t)
-     "c r" '(eglot-rename :which-key "Rename")
-     "c a" '(eglot-code-actions :which-key "Actions"))
+    "c" '(:ignore t :which-key "Code")
+    "c <escape>" '(keyboard-escape-quit :which-key t)
+    "c r" '(eglot-rename :which-key "Rename")
+    "c a" '(eglot-code-actions :which-key "Actions"))
   (fset #'jsonrpc--log-event #'ignore)  ; massive perf boost---don't log every event
   ;; Sometimes you need to tell Eglot where to find the language server
   (dolist (mode '(c-mode c-ts-mode c++-mode c++-ts-mode))
@@ -1409,7 +1409,7 @@ every mode."
    org-catch-invisible-edits 'show-and-error
    org-special-ctrl-a/e t
    org-insert-heading-respect-content t
-  
+   
    ;; Org styling, hide markup etc.
    org-hide-emphasis-markers t
    org-modern-star 'replace
