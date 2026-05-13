@@ -147,7 +147,7 @@
 	    (or (cdr (assoc hostname size-by-hostname))
 		default-size)))
 	 (font-height (* font-size 10)))
-    (set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
+    (set-face-attribute 'default nil :family "JBMono Nerd Font" :height font-height)
     (set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
     (setq-default line-spacing 0.2)
     (custom-theme-set-faces
