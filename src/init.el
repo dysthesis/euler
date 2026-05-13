@@ -8,8 +8,6 @@
 (setq use-package-always-ensure nil
       use-package-ensure-function 'ignore)
 
-(require 'cl-lib)
-
 (defvar euler-inhibit-local-var-hooks nil
   "Non-nil disables Euler's MAJOR-MODE-local-vars-hook dispatcher.")
 
@@ -107,7 +105,10 @@
             (lambda ()
               (setq kill-ring
                     (mapcar #'substring-no-properties
-                            (cl-remove-if-not #'stringp kill-ring)))))
+                            (delq nil
+                                  (mapcar (lambda (item)
+                                            (and (stringp item) item))
+                                          kill-ring))))))
 
   ;; We won't set these, but they're good to know about
   ;;
@@ -937,7 +938,8 @@
     (add-to-list 'ffap-alist '(c++-ts-mode . ffap-c++-mode)))
   :config
   (dolist (mode '(c-mode c++-mode c-or-c++-mode))
-    (cl-callf2 delete (list mode) major-mode-remap-defaults))
+    (setq major-mode-remap-defaults
+          (delete (list mode) major-mode-remap-defaults)))
 
   (with-eval-after-load 'find-file
     (add-to-list 'find-sibling-rules
