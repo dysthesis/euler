@@ -897,6 +897,7 @@
    (c++-mode-local-vars . euler/cc-init-ffap-integration)
    (c++-ts-mode-local-vars . euler/cc-init-ffap-integration)
    (c-mode-local-vars . eglot-ensure)
+   ((c-mode c-ts-mode) . eglot-ensure)
    (c-ts-mode-local-vars . eglot-ensure)
    (c++-mode-local-vars . eglot-ensure)
    (c++-ts-mode-local-vars . eglot-ensure)
@@ -965,7 +966,6 @@
 (use-package eglot
   :hook
   ((nix-mode . eglot-ensure))
-
   :custom
   (eglot-send-changes-idle-time 0.1)
   (eglot-extend-to-xref t)
