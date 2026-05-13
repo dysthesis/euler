@@ -142,7 +142,7 @@
   (let* ((font-size
 	  (let* ((hostname (car (split-string (system-name) "\\." t)))
 		 (size-by-hostname '(("deimos" . 9)
-				     ("phobos" . 11)))
+				     ("phobos" . 9)))
 		 (default-size 9))
 	    (or (cdr (assoc hostname size-by-hostname))
 		default-size)))
