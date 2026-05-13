@@ -10,6 +10,35 @@
 
 (require 'cl-lib)
 
+(defvar euler-inhibit-local-var-hooks nil
+  "Non-nil disables Euler's MAJOR-MODE-local-vars-hook dispatcher.")
+
+(defun euler/run-local-var-hooks ()
+  "Run MAJOR-MODE-local-vars-hook after file and directory locals are set."
+  (unless (or euler-inhibit-local-var-hooks
+              delay-mode-hooks
+              (minibufferp)
+              (string-prefix-p
+               " " (buffer-name (or (buffer-base-buffer)
+                                     (current-buffer)))))
+    (setq-local euler-inhibit-local-var-hooks t)
+    (let ((hook-var (intern (format "%s-local-vars-hook" major-mode))))
+      (unless (boundp hook-var)
+        (set hook-var nil))
+      (unless (get hook-var 'variable-documentation)
+        (put hook-var 'variable-documentation
+             (format "Hook run after file and directory locals are set in `%s'."
+                     major-mode)))
+      (run-hooks hook-var))))
+
+(defun euler/run-local-var-hooks-maybe ()
+  "Run local-var hooks when local variables are globally disabled."
+  (unless enable-local-variables
+    (euler/run-local-var-hooks)))
+
+(add-hook 'after-change-major-mode-hook #'euler/run-local-var-hooks-maybe 100)
+(add-hook 'hack-local-variables-hook #'euler/run-local-var-hooks)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;;   Basic settings
@@ -897,7 +926,6 @@
    (c++-mode-local-vars . euler/cc-init-ffap-integration)
    (c++-ts-mode-local-vars . euler/cc-init-ffap-integration)
    (c-mode-local-vars . eglot-ensure)
-   ((c-mode c-ts-mode) . eglot-ensure)
    (c-ts-mode-local-vars . eglot-ensure)
    (c++-mode-local-vars . eglot-ensure)
    (c++-ts-mode-local-vars . eglot-ensure)
