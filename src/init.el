@@ -29,6 +29,7 @@
 	  (typescript-mode . typescript-ts-mode)
 	  (json-mode . json-ts-mode)
 	  (css-mode . css-ts-mode)
+	  (c-mode . c-ts-mode)
 	  (python-mode . python-ts-mode)))
   ;; Built-in *-ts-mode keeps bracket/delimiter/operator faces at level 4.
   (setopt treesit-font-lock-level 4)
