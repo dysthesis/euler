@@ -35,6 +35,7 @@
       (elsa-declare-defvar custom-theme-load-path (list string))
       (elsa-declare-defvar evil-local-mode bool)
       (elsa-declare-defvar evil-state symbol)
+      (elsa-declare-defvar evil-visual-selection symbol)
       (elsa-declare-defvar euler--initial-gc-threshold int)
       (elsa-declare-defvar gc-cons-threshold int)
       (elsa-declare-defvar native-comp-eln-load-path (list string))
@@ -112,7 +113,7 @@
       mkdir -p "$out/share/emacs/native-lisp"
 
       ${lib.optionalString (emacs.withNativeCompilation or false) ''
-        find -L "$out" "${emacsWithPackages.deps}/share/emacs/site-lisp" \
+        find -L "$out" \
           -type f -name '*.el' -not -name '.dir-locals.el' \
           -exec emacs --batch \
             -f package-activate-all \

@@ -244,6 +244,22 @@
   '((t (:inherit mode-line-emphasis)))
   "Face for the Evil state segment in the Euler mode line.")
 
+(defface euler-mode-line-icon
+  '((t (:inherit shadow)))
+  "Face for icons in the Euler mode line.")
+
+(defface euler-mode-line-buffer
+  '((t (:inherit mode-line-buffer-id)))
+  "Face for the buffer name in the Euler mode line.")
+
+(defface euler-mode-line-branch
+  '((t (:inherit shadow)))
+  "Face for the VC branch in the Euler mode line.")
+
+(defface euler-mode-line-mode
+  '((t (:inherit mode-line-emphasis)))
+  "Face for the major mode segment in the Euler mode line.")
+
 (defface euler-mode-line-muted
   '((t (:inherit shadow)))
   "Face for quiet metadata in the Euler mode line.")
@@ -259,6 +275,9 @@
 (defface euler-mode-line-position
   '((t (:inherit mode-line-emphasis)))
   "Face for cursor position in the Euler mode line.")
+
+(defvar euler-mode-line-icons-enabled (require 'nerd-icons nil t)
+  "Non-nil when Nerd Icons can be used in the Euler mode line.")
 
 (defun euler/mode-line--truncate-left (text max-width)
   "Return TEXT shortened from the left to MAX-WIDTH characters."
@@ -277,18 +296,59 @@
                  items))
    "  "))
 
+(defun euler/mode-line--pair (&rest items)
+  "Join non-empty ITEMS as a compact icon/label pair."
+  (string-join
+   (delq nil
+         (mapcar (lambda (item)
+                   (when (and item (not (string-empty-p item)))
+                     item))
+                 items))
+   " "))
+
+(defun euler/mode-line--icon (icon fallback)
+  "Return Nerd ICON or FALLBACK with icon styling."
+  (propertize (or (and euler-mode-line-icons-enabled icon) fallback)
+              'face 'euler-mode-line-icon))
+
+(defun euler/mode-line--mode-icon ()
+  "Return icon for the current major mode."
+  (euler/mode-line--icon
+   (when euler-mode-line-icons-enabled
+     (ignore-errors (nerd-icons-icon-for-mode major-mode)))
+   ":"))
+
+(defun euler/mode-line--octicon (name fallback)
+  "Return octicon NAME or FALLBACK."
+  (euler/mode-line--icon
+   (when euler-mode-line-icons-enabled
+     (ignore-errors (nerd-icons-octicon name)))
+   fallback))
+
+(defun euler/mode-line--codicon (name fallback)
+  "Return codicon NAME or FALLBACK."
+  (euler/mode-line--icon
+   (when euler-mode-line-icons-enabled
+     (ignore-errors (nerd-icons-codicon name)))
+   fallback))
+
 (defun euler/mode-line-evil-state ()
   "Return compact Evil state indicator."
   (when (and (boundp 'evil-state) (bound-and-true-p evil-local-mode))
     (propertize
      (pcase evil-state
-       ('normal "N")
-       ('insert "I")
-       ('visual "V")
-       ('replace "R")
-       ('operator "O")
-       ('motion "M")
-       ('emacs "E")
+       ('normal "NOR")
+       ('insert "INS")
+       ('visual
+        (pcase (and (boundp 'evil-visual-selection)
+                    evil-visual-selection)
+          ('line "V-LINE")
+          ('block "V-BLOCK")
+          (_ "VIS")))
+       ('replace "REP")
+       ('operator "OP")
+       ('motion "MOT")
+       ('emacs "EMACS")
        (_ "?"))
      'face 'euler-mode-line-state
      'help-echo (format "Evil state: %s" evil-state))))
@@ -308,7 +368,7 @@
          (limit (max 20 (/ (window-total-width) 2))))
     (propertize
      (euler/mode-line--truncate-left name limit)
-     'face 'mode-line-buffer-id
+     'face 'euler-mode-line-buffer
      'help-echo (or file name))))
 
 (defun euler/mode-line-buffer-status ()
@@ -337,33 +397,40 @@
     (let* ((text (string-trim vc-mode))
            (branch (replace-regexp-in-string "\\`[[:alpha:]]+[:-]" "" text)))
       (unless (string-empty-p branch)
-        (propertize branch 'face 'euler-mode-line-muted)))))
+        (euler/mode-line--pair
+         (euler/mode-line--octicon "nf-oct-git_branch" "git")
+         (propertize branch 'face 'euler-mode-line-branch))))))
 
 (defun euler/mode-line-major-mode ()
   "Return current major mode name."
-  (propertize (or (alist-get major-mode
-                             '((emacs-lisp-mode . "elisp")
-                               (lisp-interaction-mode . "lisp")
-                               (nix-mode . "nix")
-                               (org-mode . "org")
-                               (markdown-mode . "md"))
-                             nil nil #'eq)
-                 (replace-regexp-in-string
-                  "\\(?:-ts\\)?-mode\\'" ""
-                  (symbol-name major-mode)))
-              'face 'euler-mode-line-muted))
+  (euler/mode-line--pair
+   (euler/mode-line--mode-icon)
+   (propertize (or (alist-get major-mode
+                              '((emacs-lisp-mode . "elisp")
+                                (lisp-interaction-mode . "lisp")
+                                (nix-mode . "nix")
+                                (org-mode . "org")
+                                (markdown-mode . "md"))
+                              nil nil #'eq)
+                  (replace-regexp-in-string
+                   "\\(?:-ts\\)?-mode\\'" ""
+                   (symbol-name major-mode)))
+               'face 'euler-mode-line-mode)))
 
 (defun euler/mode-line-position ()
   "Return current line and column."
-  (propertize (format-mode-line "%l:%c")
-              'face 'euler-mode-line-position))
+  (euler/mode-line--pair
+   (euler/mode-line--codicon "nf-cod-location" "@")
+   (propertize (format "%d:%d" (line-number-at-pos) (current-column))
+               'face 'euler-mode-line-position)))
 
 (defun euler/mode-line-render (left right)
   "Render LEFT and RIGHT mode line segments."
   (let ((spacer-width (max 1 (- (window-total-width)
                                 (string-width left)
-                                (string-width right)))))
-    (concat left (make-string spacer-width ?\s) right)))
+                                (string-width right)
+                                2))))
+    (concat " " left (make-string spacer-width ?\s) right " ")))
 
 (defun euler/mode-line ()
   "Return the Euler mode line."
