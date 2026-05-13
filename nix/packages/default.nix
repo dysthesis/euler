@@ -33,6 +33,8 @@
       (elsa-declare-defvar avy-dispatch-alist mixed)
       (elsa-declare-defvar avy-ring mixed)
       (elsa-declare-defvar custom-theme-load-path (list string))
+      (elsa-declare-defvar evil-local-mode bool)
+      (elsa-declare-defvar evil-state symbol)
       (elsa-declare-defvar euler--initial-gc-threshold int)
       (elsa-declare-defvar gc-cons-threshold int)
       (elsa-declare-defvar native-comp-eln-load-path (list string))
@@ -63,6 +65,10 @@
 
       (defun elsa--analyse:deftheme (form _scope _state)
         "Treat `deftheme' arguments as declarative theme data."
+        (oset form type (elsa-type-nil)))
+
+      (defun elsa--analyse:defface (form _scope _state)
+        "Treat `defface' arguments as declarative face data."
         (oset form type (elsa-type-nil)))
 
       (defun elsa--analyse:custom-theme-set-faces (form _scope _state)

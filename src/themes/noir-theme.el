@@ -69,6 +69,11 @@
    `(mode-line-buffer-id  ((t (:foreground ,luster :weight normal))))
    `(mode-line-emphasis   ((t (:foreground ,luster))))
    `(mode-line-highlight  ((t (:background ,gray3 :box nil))))
+   `(euler-mode-line-state     ((t (:foreground ,luster :weight bold))))
+   `(euler-mode-line-muted     ((t (:foreground ,gray6))))
+   `(euler-mode-line-modified  ((t (:foreground ,orange :weight bold))))
+   `(euler-mode-line-read-only ((t (:foreground ,gray6))))
+   `(euler-mode-line-position  ((t (:foreground ,gray7))))
 
    ;; ---- Minibuffer + link + status semantics ----
    `(minibuffer-prompt    ((t (:foreground ,luster))))
