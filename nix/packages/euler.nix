@@ -7,12 +7,18 @@
   ripgrep,
   fd,
   emacs-lsp-booster,
+  clang-tools,
+  cmake,
+  cmake-language-server,
   ...
 }: let
   deps = [
     ripgrep
     fd
     emacs-lsp-booster
+    clang-tools
+    cmake
+    cmake-language-server
   ];
 in
   symlinkJoin {

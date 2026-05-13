@@ -32,6 +32,8 @@
 
       (elsa-declare-defvar avy-dispatch-alist mixed)
       (elsa-declare-defvar avy-ring mixed)
+      (elsa-declare-defvar c-default-style mixed)
+      (elsa-declare-defvar c-syntactic-context mixed)
       (elsa-declare-defvar custom-theme-load-path (list string))
       (elsa-declare-defvar evil-local-mode bool)
       (elsa-declare-defvar evil-state symbol)
