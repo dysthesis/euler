@@ -6,6 +6,8 @@
   lib,
   ripgrep,
   fd,
+  coreutils,
+  rsync,
   emacs-lsp-booster,
   clang-tools,
   cmake,
@@ -15,6 +17,8 @@
   deps = [
     ripgrep
     fd
+    coreutils
+    rsync
     emacs-lsp-booster
     clang-tools
     cmake

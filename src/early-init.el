@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t; -*-
 ;;; Mainly from emacs-bedrock
 ;; Startup speed, annoyance suppression
 (defvar euler--initial-gc-threshold gc-cons-threshold
