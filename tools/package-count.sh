@@ -2,8 +2,29 @@
 
 # Count packages explicitly pulled by use-package invocations
 
+find_flake_dir() {
+    dir=$PWD
+
+    while [ "$dir" != "/" ]; do
+        if [ -f "$dir/flake.nix" ]; then
+            printf '%s\n' "$dir"
+            return 0
+        fi
+
+        dir=$(dirname "$dir")
+    done
+
+    return 1
+}
+
 USE_PACKAGE_PATTERN="\(use-package "
-SRC_PATH="../src"
+
+ROOT_PATH=$(find_flake_dir) || {
+    echo "No flake.nix found" >&2
+    exit 1
+}
+
+SRC_PATH="$ROOT_PATH/src"
 
 RIPGREP_OUTPUT="$(rg "$USE_PACKAGE_PATTERN" "$SRC_PATH" | sort | uniq)"
 
