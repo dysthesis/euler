@@ -2,7 +2,7 @@
 
 This repository contains my configuration for Emacs, wrapped with Nix.
 
-* TODO Roadmap [9/16]
+* TODO Roadmap [10/16]
 As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
 ** DONE VC packages installation layer
@@ -53,7 +53,9 @@ See if I can do static analysis (see [[https://github.com/emacs-elsa/Elsa][elsa]
 ** DONE Org-mode touchups
 Add as much UI improvements to Org-mode wihout slowing it down. Surely I can fit in Org-modern and Olivetti here.
 
-** TODO Modularisation
+** OBSOLETE Modularisation
+- State "OBSOLETE"   from "TODO"       [2026-05-13 Wed 13:46] \\
+  I can't build a Doom-like module system, since that breaks package discovery by Nix. Without something like that, "modularisation" becomes nothing more than importing a bunch of =*.el= files, which isn't really useful to me. I might re-explore this someday, /e.g./ having Emacs generate a list of packages and using something similar to [[https://nix.dev/manual/nix/2.34/language/import-from-derivation][IFD]] on the Nix-side, but it's pointless for now.
 Make a module system, ideally something simlar to Doom's (but lighter, of course -- this is just a personal config). Need it to be composable, which means things like enabling certain sections of a module only when other modules are activated. This is useful for, say, language-specific LSP config, where the config lives in the language's own module but is activated only when the LSP module is active.
 
 ** DONE UI touchups
