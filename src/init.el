@@ -24,16 +24,16 @@
   ;; Auto parenthesis matching
   ((prog-mode . electric-pair-mode))
   :config
-	  (setq major-mode-remap-alist
-		'((yaml-mode . yaml-ts-mode)
-		  (bash-mode . bash-ts-mode)
-		  (c-mode . c-ts-mode)
-		  (c++-mode . c++-ts-mode)
-		  (cmake-mode . cmake-ts-mode)
-		  (js2-mode . js-ts-mode)
-		  (typescript-mode . typescript-ts-mode)
-		  (json-mode . json-ts-mode)
-		  (css-mode . css-ts-mode)
+  (setq major-mode-remap-alist
+	'((yaml-mode . yaml-ts-mode)
+	  (bash-mode . bash-ts-mode)
+	  (c-mode . c-ts-mode)
+	  (c++-mode . c++-ts-mode)
+	  (cmake-mode . cmake-ts-mode)
+	  (js2-mode . js-ts-mode)
+	  (typescript-mode . typescript-ts-mode)
+	  (json-mode . json-ts-mode)
+	  (css-mode . css-ts-mode)
 	  (python-mode . python-ts-mode)))
   ;; Built-in *-ts-mode keeps bracket/delimiter/operator faces at level 4.
   (setopt treesit-font-lock-level 4)
@@ -147,12 +147,12 @@
   (let* ((font-size
 	  (let* ((hostname (car (split-string (system-name) "\\." t)))
 		 (size-by-hostname '(("deimos" . 9)
-				     ("phobos" . 13)))
+				     ("phobos" . 9)))
 		 (default-size 9))
 	    (or (cdr (assoc hostname size-by-hostname))
 		default-size)))
 	 (font-height (* font-size 10)))
-    (set-face-attribute 'default nil :font "JBMono Nerd Font" :height font-height)
+    (set-face-attribute 'default nil :family "JBMono Nerd Font" :height font-height)
     (set-fontset-font t nil (font-spec :size font-size :name "JBMono Nerd Font"))
     (setq-default line-spacing 0.2)
     (custom-theme-set-faces
@@ -735,6 +735,7 @@
 ;; Project management
 (use-package project
   :config
+  (add-to-list 'project-vc-extra-root-markers "Cargo.toml")
   (when (>= emacs-major-version 30)
     (setopt project-mode-line t))) ; show project name in modeline
 
@@ -747,6 +748,32 @@
 
 (use-package json-mode
   :ensure t)
+
+(defvar euler-tool-bin-directories
+  (delete-dups
+   (delq nil
+         (mapcar (lambda (program)
+                   (when-let ((path (executable-find program)))
+                     (directory-file-name (file-name-directory path))))
+                 '("emacs-lsp-booster"
+                   "clangd"
+                   "clang-format"
+                   "cmake"
+                   "cmake-language-server"))))
+  "Tool directories from Euler's startup PATH to preserve in local envs.")
+
+(defun euler/prepend-to-local-path (directories)
+  "Prepend DIRECTORIES to buffer-local PATH and `exec-path'."
+  (let (merged)
+    (dolist (dir (append directories
+                         (split-string (or (getenv "PATH") "") path-separator t)))
+      (when (and (stringp dir)
+                 (not (string-empty-p dir))
+                 (not (member dir merged)))
+        (push dir merged)))
+    (setq merged (nreverse merged))
+    (setenv "PATH" (string-join merged path-separator))
+    (setq-local exec-path (append merged (and (memq nil exec-path) '(nil))))))
 
 (defvar euler/cc-default-include-paths '("include" "includes")
   "Relative include directories to expose to `find-file-at-point'.")
@@ -952,19 +979,23 @@
      "c <escape>" '(keyboard-escape-quit :which-key t)
      "c r" '(eglot-rename :which-key "Rename")
      "c a" '(eglot-code-actions :which-key "Actions"))
-	  (fset #'jsonrpc--log-event #'ignore)  ; massive perf boost---don't log every event
-	  ;; Sometimes you need to tell Eglot where to find the language server
-	  (dolist (mode '(c-mode c-ts-mode c++-mode c++-ts-mode))
-	    (add-to-list
-	     'eglot-server-programs
-	     `(,mode . ("clangd" ,(format "-j=%d" (max 1 (/ (num-processors) 2)))))))
-	  (add-to-list 'eglot-server-programs
-	               '(nix-mode . ("nil"))))
+  (fset #'jsonrpc--log-event #'ignore)  ; massive perf boost---don't log every event
+  ;; Sometimes you need to tell Eglot where to find the language server
+  (dolist (mode '(c-mode c-ts-mode c++-mode c++-ts-mode))
+    (add-to-list
+     'eglot-server-programs
+     `(,mode . ("clangd" ,(format "-j=%d" (max 1 (/ (num-processors) 2)))))))
+  (add-to-list 'eglot-server-programs
+               '(nix-mode . ("nil")))
+  (add-to-list 'eglot-server-programs
+               '(((rustic-mode :language-id "rust") rust-mode rust-ts-mode)
+                 . ("rust-analyzer"))))
 
 ;; Speed bonus for LSP. Requires the `emacs-lsp-booster' binary.
 (use-package eglot-booster
   :ensure t
   :after eglot
+  :if (executable-find "emacs-lsp-booster")
   :config (eglot-booster-mode))
 
 (use-package nix-mode
@@ -972,10 +1003,71 @@
   :mode "\\.nix\\'"
   :hook (nix-mode . eglot-ensure))
 
+(use-package rust-mode
+  :ensure t
+  :defer t
+  :init
+  (setq rust-mode-treesitter-derive t
+        rust-indent-method-chain t))
+
+(use-package rustic
+  :ensure t
+  :mode ("\\.rs\\'" . rustic-mode)
+  :hook (rustic-mode . eglot-ensure)
+  :init
+  (setq rustic-babel-format-src-block nil
+        rustic-format-trigger nil
+        rustic-lsp-client 'eglot
+        rustic-lsp-setup-p nil)
+  :config
+  (defun euler/rust-cargo-audit ()
+    "Run cargo audit for the current Rust project."
+    (interactive)
+    (rustic-run-cargo-command `(,(rustic-cargo-bin) "audit")
+                              (list :clippy-fix t
+                                    :mode 'rustic-cargo-custom-command-mode)))
+
+  (with-eval-after-load 'org-src
+    (autoload 'org-babel-execute:rustic "rustic-babel")
+    (defalias 'org-babel-execute:rust #'org-babel-execute:rustic)
+    (add-to-list 'org-src-lang-modes '("rust" . rustic)))
+
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*\\(rustic-compilation\\|cargo-run\\)"
+                 (display-buffer-reuse-window display-buffer-at-bottom)
+                 (window-height . 0.25)))
+
+  (dysthesis/start/leader-keys
+    :keymaps 'rustic-mode-map
+    "m b" '(:ignore t :wk "Build")
+    "m b a" '(euler/rust-cargo-audit :wk "Cargo audit")
+    "m b b" '(rustic-cargo-build :wk "Cargo build")
+    "m b B" '(rustic-cargo-bench :wk "Cargo bench")
+    "m b c" '(rustic-cargo-check :wk "Cargo check")
+    "m b C" '(rustic-cargo-clippy :wk "Cargo clippy")
+    "m b d" '(rustic-cargo-build-doc :wk "Cargo doc")
+    "m b D" '(rustic-cargo-doc :wk "Cargo doc --open")
+    "m b f" '(rustic-cargo-fmt :wk "Cargo fmt")
+    "m b n" '(rustic-cargo-new :wk "Cargo new")
+    "m b o" '(rustic-cargo-outdated :wk "Cargo outdated")
+    "m b r" '(rustic-cargo-run :wk "Cargo run")
+    "m t" '(:ignore t :wk "Cargo test")
+    "m t a" '(rustic-cargo-test :wk "All")
+    "m t t" '(rustic-cargo-current-test :wk "Current test")))
+
 ;; Load direnv environments from .envrc
 (use-package envrc
   :ensure t
-  :config (envrc-global-mode))
+  :config
+  (defun euler/envrc-preserve-tool-paths (buffer result)
+    "Keep Euler-provided tools discoverable after envrc updates BUFFER."
+    (with-current-buffer buffer
+      (when (and (listp result)
+                 euler-tool-bin-directories)
+        (euler/prepend-to-local-path euler-tool-bin-directories))))
+
+  (advice-add 'envrc--apply :after #'euler/envrc-preserve-tool-paths)
+  (envrc-global-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
