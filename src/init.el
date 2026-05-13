@@ -57,6 +57,7 @@
   (setq major-mode-remap-alist
 	'((yaml-mode . yaml-ts-mode)
 	  (bash-mode . bash-ts-mode)
+	  (sh-mode . bash-ts-mode)
 	  (c-mode . c-ts-mode)
 	  (c++-mode . c++-ts-mode)
 	  (cmake-mode . cmake-ts-mode)
