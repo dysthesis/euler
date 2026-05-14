@@ -1253,6 +1253,60 @@ remain, kill all Magit buffers for the repository."
   (dysthesis/start/leader-keys
     "g g" '(magit :wk "Magit")))
 
+(use-package diff-hl
+  :ensure t
+  :demand t
+  :custom
+  (vc-git-diff-switches '("--histogram"))
+  (diff-hl-flydiff-delay 0.5)
+  (diff-hl-update-async t)
+  (diff-hl-show-staged-changes nil)
+  (diff-hl-draw-borders nil)
+  :hook (vc-dir-mode . turn-on-diff-hl-mode)
+  :hook (diff-hl-mode . diff-hl-flydiff-mode)
+  :config
+  (if (fboundp 'fringe-mode) (fringe-mode '8))
+  (setq-default fringes-outside-margins t)
+  (global-diff-hl-mode)
+;; from https://github.com/jidibinlin/.emacs.d/blob/d5332b2a7877126e83dc3dc0c94e1c66dd5446c0/lisp/init-vc.el#L56C2-L91C69
+  (defun dysthesis/pretty-diff-hl-fringe (&rest _)
+    (let* ((scale (if (and (boundp 'text-scale-mode-amount)
+  						   (numberp text-scale-mode-amount))
+  				      (expt text-scale-mode-step text-scale-mode-amount)
+  				    1))
+  		   (spacing (or (and (display-graphic-p) (default-value 'line-spacing)) 0))
+  		   (h (+ (ceiling (* (frame-char-height) scale))
+  					(if (floatp spacing)
+  				     (truncate (* (frame-char-height) spacing))
+  				   spacing)))
+  		   (w (min (frame-parameter nil (intern (format "%s-fringe" diff-hl-side)))
+  					  16))
+  		   (_ (if (zerop w) (setq w 16))))
+
+      (define-fringe-bitmap 'diff-hl-bmp-middle
+  		(make-vector
+  		 h (string-to-number (let ((half-w (1- (/ w 2))))
+  						       (concat (make-string half-w ?1)
+  									      (make-string (- w half-w) ?0)))
+  							    2))
+  		nil nil 'center)))
+  
+  (advice-add #'diff-hl-define-bitmaps
+  			     :after #'dysthesis/pretty-diff-hl-fringe)
+  
+  (defun dysthesis/diff-hl-type-at-pos-fn (type _pos)
+    'diff-hl-bmp-middle)
+  
+  (setq diff-hl-fringe-bmp-function #'dysthesis/diff-hl-type-at-pos-fn)
+  (defun dysthesis/diff-hl-fringe-pretty(_)
+    (set-face-attribute 'diff-hl-insert nil :background 'unspecified :inherit nil)
+    (set-face-attribute 'diff-hl-delete nil :background 'unspecified :inherit nil)
+    (set-face-attribute 'diff-hl-change nil :background 'unspecified :inherit nil))
+  (add-to-list 'after-make-frame-functions
+  			      #'dysthesis/diff-hl-fringe-pretty)
+  (add-to-list 'enable-theme-functions #'dysthesis/diff-hl-fringe-pretty)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh))
+
 (use-package forge
   :ensure t
   :defer
