@@ -7,15 +7,23 @@
     ...
   }:
     flake-parts.lib.mkFlake {inherit inputs;} {
-      perSystem = {system, ...}: {
-        _module.args.pkgs = import nixpkgs {
-          inherit system;
-          overlays = [
-            inputs.emacs-overlay.overlay
-            # Consume our own overlay so emacsWithPackages* can find
-            # our vc-packages
-            self.overlays.default
-          ];
+      perSystem = {
+        system,
+        pkgs,
+        lib,
+        ...
+      }: {
+        _module.args = {
+          pkgs = import nixpkgs {
+            inherit system;
+            overlays = [
+              inputs.emacs-overlay.overlay
+              # Consume our own overlay so emacsWithPackages* can find
+              # our vc-packages
+              self.overlays.default
+            ];
+          };
+          parse = import "${inputs.emacs-overlay}/parse.nix" {inherit pkgs lib;};
         };
       };
       imports = [
