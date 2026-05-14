@@ -13,6 +13,19 @@
       "url": "https://github.com/jdtsmith/eglot-booster/archive/cab7803c4f0adc7fff9da6680f90110674bb7a22.tar.gz",
       "hash": "sha256-xUBQrQpw+JZxcqT1fy/8C2tjKwa7sLFHXamBm45Fa4Y="
     },
+    "nix-ts-mode": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "nix-community",
+        "repo": "nix-ts-mode"
+      },
+      "branch": "trunk",
+      "submodules": false,
+      "revision": "50916188784786ed201a8edc70a5264eefb525e3",
+      "url": "https://github.com/nix-community/nix-ts-mode/archive/50916188784786ed201a8edc70a5264eefb525e3.tar.gz",
+      "hash": "sha256-PizUBawN1IfupPK/vZh+xoPabZasJpjOa+7gFZ/Q2JM="
+    },
     "treesit-fold": {
       "type": "Git",
       "repository": {

@@ -57,6 +57,7 @@
   :config
   (setq major-mode-remap-alist
 	'((yaml-mode . yaml-ts-mode)
+	  (nix-mode . nix-ts-mode)
 	  (bash-mode . bash-ts-mode)
 	  (sh-mode . bash-ts-mode)
 	  (c-mode . c-ts-mode)
@@ -2117,6 +2118,10 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
   :ensure t
   :mode "\\.nix\\'"
   :hook (nix-mode . eglot-ensure))
+
+(use-package nix-ts-mode
+  :ensure t
+  :mode "\\.nix\\'")
 
 (use-package rust-mode
   :ensure t
