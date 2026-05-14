@@ -426,14 +426,17 @@
       (concat "..." (substring text (- (length text) (- max-width 3)))))))
 
 (defun euler/mode-line--join (items)
-  "Join non-empty ITEMS with quiet spacing."
-  (euler/string-join
-   (delq nil
-         (mapcar (lambda (item)
-                   (when (and item (not (euler/string-empty-p item)))
-                     item))
-                 items))
-   "  "))
+  "Join non-empty ITEMS with a muted separator."
+  (mapconcat #'identity
+             (delq nil
+                   (mapcar (lambda (item)
+                             (when (and item (not (euler/string-empty-p item)))
+                               item))
+                           items))
+             (euler/mode-line--sep)))
+
+(defun euler/mode-line--sep ()
+  (propertize " · " 'face 'euler-mode-line-muted))
 
 (defun euler/mode-line--pair (&rest items)
   "Join non-empty ITEMS as a compact icon/label pair."
