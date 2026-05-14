@@ -2241,6 +2241,7 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
 
 (declare-function treesit-fold--create-overlay "treesit-fold" (range))
 (declare-function treesit-fold--get-fold-range "treesit-fold" (node))
+(declare-function treesit-fold-parsers-zig "treesit-fold-parsers" ())
 (declare-function treesit-fold-ready-p "treesit-fold")
 (declare-function treesit-buffer-root-node "treesit")
 (declare-function treesit-node-language "treesit" (node))
@@ -2252,6 +2253,7 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
 
 (defvar treesit-fold-mode)
 (defvar treesit-fold-on-fold-hook)
+(defvar treesit-fold-range-alist)
 
 (defvar-local euler/treesit-fold-bodies-initialized nil
   "Non-nil means this buffer already got its initial body folds.")
@@ -2266,6 +2268,11 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
     (:name emacs-lisp
      :modes (emacs-lisp-mode)
      :query "[(function_definition) (macro_definition)] @fold")
+    (:name go
+     :modes (go-mode go-ts-mode)
+     :query "[(function_declaration body: (block) @body)
+               (method_declaration body: (block) @body)
+               (func_literal body: (block) @body)]")
     (:name javascript
      :modes (js-mode js-ts-mode typescript-mode typescript-ts-mode tsx-ts-mode)
      :query "[(function_declaration body: (statement_block) @body)
@@ -2277,7 +2284,10 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
      :query "((function_definition) @fold)")
     (:name rust
      :modes (rust-mode rust-ts-mode rustic-mode)
-     :query "((function_item body: (block) @body))"))
+     :query "((function_item body: (block) @body))")
+    (:name zig
+     :modes (zig-mode zig-ts-mode)
+     :query "((Decl (FnProto) (Block) @body))"))
   "Rules for auto-folding function and method bodies.
 
 Each rule is a plist with:
@@ -2447,6 +2457,9 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
   :config
   (setq treesit-fold-line-count-show t)  ; Show line count in folded regions
   (setq treesit-fold-line-count-format " < %d lines > ")
+  (unless (alist-get 'zig-ts-mode treesit-fold-range-alist)
+    (add-to-list 'treesit-fold-range-alist
+                 (cons 'zig-ts-mode (treesit-fold-parsers-zig))))
   (add-hook 'treesit-fold-mode-hook
             #'euler/treesit-fold-close-function-bodies-once)
   (add-hook 'xref-after-jump-hook #'euler/treesit-fold-open-at-point)
