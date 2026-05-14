@@ -13,6 +13,7 @@
   cmake,
   cmake-language-server,
   perl,
+  vscode-extensions,
   ...
 }: let
   deps = [
@@ -20,7 +21,7 @@
     fd
     coreutils
     rsync
-    emacs-lsp-booster
+    emacs-lsp-booster 
     clang-tools
     cmake
     cmake-language-server
@@ -36,7 +37,8 @@ in
         --add-flags "--init-directory=${cfg}" \
         --prefix EMACSNATIVELOADPATH : "${emacsWithPackages.deps}/share/emacs/native-lisp" \
         --prefix EMACSNATIVELOADPATH : "${cfg}/share/emacs/native-lisp" \
-        --prefix PATH ":" "${lib.makeBinPath deps}"
+        --prefix PATH ":" "${lib.makeBinPath deps}" \
+	--prefix PATH ":" "${vscode-extensions.vadimcn.vscode-lldb}/share/vscode/extensions/vadimcn.vscode-lldb/adapter"
 
     '';
     meta.mainProgram = "emacs";

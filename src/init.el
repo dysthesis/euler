@@ -99,7 +99,7 @@
   ((prog-mode . electric-pair-mode))
   :config
   (setq-default line-spacing 0.25)
-
+  (setq window-sides-vertical t) ;; Left and right side windows occupy full frame height
   (setq-default display-fill-column-indicator-column 80)
   (setq-default display-fill-column-indicator-character ?\x2502)
   (set-face-attribute 'fill-column-indicator nil :background nil :foreground "gray3")
@@ -2222,8 +2222,6 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
    '((rustic-mode :language-id "rust") rust-mode rust-ts-mode)
    '("rust-analyzer")))
 
-
-
 ;; Speed bonus for LSP. Requires the `emacs-lsp-booster' binary.
 (use-package eglot-booster
   :ensure t
@@ -2244,6 +2242,94 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
     (define-key eglot-mode-map [remap xref-find-apropos] #'consult-eglot-symbols))
   (dysthesis/start/leader-keys
     "c j" '(consult-eglot-symbols :which-key "Symbols")))
+
+(defvar euler/codelldb (executable-find "codelldb")
+  "Path to the `codelldb' binary.
+The default value assumes that `codelldb' is somewhere in Emacs' $PATH.")
+
+(use-package dape
+  :ensure t
+  :preface
+  ;; By default dape shares the same keybinding prefix as `gud'
+  ;; If you do not want to use any prefix, set it to nil.
+  ;; (setq dape-key-prefix "\C-x\C-a")
+
+  :hook
+  ;; Save breakpoints on quit
+  (kill-emacs . dape-breakpoint-save)
+  ;; Load breakpoints on startup
+  (after-init . dape-breakpoint-load)
+
+  :custom
+  ;; Turn on global bindings for setting breakpoints with mouse
+  (dape-breakpoint-global-mode +1)
+
+  ;; Info buffers to the right
+  ;; (dape-buffer-window-arrangement 'right)
+  ;; Info buffers like gud (gdb-mi)
+  ;; (dape-buffer-window-arrangement 'gud)
+  ;; (dape-info-hide-mode-line nil)
+
+  ;; Projectile users
+  ;; (dape-cwd-function #'projectile-project-root)
+
+  :config
+  ;; Pulse source line (performance hit)
+  (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
+
+  ;; Save buffers on startup, useful for interpreted languages
+  ;; (add-hook 'dape-start-hook (lambda () (save-some-buffers t t)))
+
+  ;; Kill compile buffer on build success
+  ;; (add-hook 'dape-compile-hook #'kill-buffer)
+  (add-to-list 'dape-configs
+	       ;; Debug Rust with `codelldb'
+               `(codelldb-rust 
+                 modes (rust-mode rust-ts-mode)
+		 command-cwd dape-command-cwd
+                 command euler/codelldb
+                 :type "lldb" 
+                 :request "launch" 
+                 command-args ("--port"
+			       :autoport
+			       "--settings" "{\"sourceLanguages\":[\"rust\"]}")
+                 ensure dape-ensure-command port :autoport fn dape-config-autoport 
+                 :cwd dape-cwd-fn 
+                 :program (lambda ()
+                            (file-name-concat "target" "debug"
+                                              (thread-first (dape-cwd)
+                                                            (directory-file-name)
+                                                            (file-name-split)
+                                                            (last)
+                                                            (car))))
+                 :args [])
+	       ;; Debug C with `codelldb'
+	       (add-to-list 'dape-configs
+			    '(my-codelldb-cc
+			      modes (c-mode c-ts-mode c++-mode c++-ts-mode)
+			      ensure dape-ensure-command
+			      command-cwd dape-command-cwd
+			      command euler/codelldb
+			      command-args ("--port" :autoport)
+			      port :autoport
+			      :type "lldb"
+			      :request "launch"
+			      :name "Codelldb: Launch current file"
+			      :cwd "."
+			      :program (lambda ()
+					 (let* ((source-file (buffer-file-name))
+						(dir (file-name-directory source-file))
+						(name (file-name-sans-extension
+						       (file-name-nondirectory source-file))))
+					   (concat dir name)))
+
+			      :args []
+			      :stopOnEntry nil))))
+
+;; For a more ergonomic Emacs and `dape' experience
+(use-package repeat
+  :custom
+  (repeat-mode +1))
 
 (use-package nix-mode
   :ensure t
