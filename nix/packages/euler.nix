@@ -12,6 +12,7 @@
   clang-tools,
   cmake,
   cmake-language-server,
+  perl,
   ...
 }: let
   deps = [
@@ -23,6 +24,7 @@
     clang-tools
     cmake
     cmake-language-server
+    perl
   ];
 in
   symlinkJoin {
