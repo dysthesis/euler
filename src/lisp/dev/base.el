@@ -1,0 +1,64 @@
+;;; -*- lexical-binding: t; -*-
+(require 'core/lib)
+
+;; Project management
+(use-package project
+  :config
+  (add-to-list 'project-vc-extra-root-markers "Cargo.toml")
+  (when (>= emacs-major-version 30)
+    (setopt project-mode-line t))) ; show project name in modeline
+
+(use-package markdown-mode
+  :ensure t
+  :hook ((markdown-mode . visual-line-mode)))
+
+(use-package yaml-mode
+  :ensure t)
+
+(use-package json-mode
+  :ensure t)
+
+(defvar euler-tool-bin-directories
+  (delete-dups
+   (delq nil
+         (mapcar (lambda (program)
+                   (let ((path (executable-find program)))
+                     (when path
+		       (directory-file-name (file-name-directory path)))))
+                 '("emacs-lsp-booster"
+                   "ls"
+                   "gls"
+                   "rsync"
+                   "clangd"
+                   "clang-format"
+                   "cmake"
+                   "cmake-language-server"))))
+  "Tool directories from Euler's startup PATH to preserve in local envs.")
+
+(defun euler/prepend-to-local-path (directories)
+  "Prepend DIRECTORIES to buffer-local PATH and `exec-path'."
+  (let (merged)
+    (dolist (dir (append directories
+                         (split-string (or (getenv "PATH") "") path-separator t)))
+      (when (and (stringp dir)
+                 (not (euler/string-empty-p dir))
+                 (not (member dir merged)))
+        (push dir merged)))
+    (setq merged (nreverse merged))
+    (setenv "PATH" (euler/string-join merged path-separator))
+    (setq-local exec-path (append merged (and (memq nil exec-path) '(nil))))))
+;; Load direnv environments from .envrc
+(use-package envrc
+  :ensure t
+  :config
+  (defun euler/envrc-preserve-tool-paths (buffer result)
+    "Keep Euler-provided tools discoverable after envrc updates BUFFER."
+    (with-current-buffer buffer
+      (when (and (listp result)
+                 euler-tool-bin-directories)
+        (euler/prepend-to-local-path euler-tool-bin-directories))))
+
+  (advice-add 'envrc--apply :after #'euler/envrc-preserve-tool-paths)
+  (envrc-global-mode))
+
+(provide 'dev/base)

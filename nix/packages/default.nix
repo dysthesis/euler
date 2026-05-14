@@ -254,6 +254,7 @@
             --eval "(setq native-comp-async-report-warnings-errors 'silent)" \
             --eval "(setq byte-compile-error-on-warn nil)" \
             --eval "(add-to-list 'load-path \"$out\")" \
+            --eval "(add-to-list 'load-path \"$out/lisp\")" \
             --eval "(add-to-list 'custom-theme-load-path \"$out/themes\")" \
             --eval "(require 'use-package)" \
             -f batch-native-compile {} +
@@ -289,11 +290,36 @@
         chmod -R u+w src
 
         mkdir -p $out
+        awk "!/^\\(require '(core|ui|tools|dev|lang|writing)\\//" \
+          src/early-init.el \
+          src/lisp/core/lib.el \
+          src/lisp/core/settings.el \
+          src/lisp/ui/base.el \
+          src/lisp/ui/mode-line.el \
+          src/lisp/ui/completion.el \
+          src/lisp/ui/keys.el \
+          src/lisp/ui/navigation.el \
+          src/lisp/tools/files.el \
+          src/lisp/tools/vc.el \
+          src/lisp/dev/base.el \
+          src/lisp/tools/format.el \
+          src/lisp/tools/lsp.el \
+          src/lisp/lang/c.el \
+          src/lisp/tools/debug.el \
+          src/lisp/lang/nix.el \
+          src/lisp/lang/rust.el \
+          src/lisp/dev/fold.el \
+          src/lisp/lang/zig.el \
+          src/lisp/tools/templates.el \
+          src/lisp/writing/org.el \
+          src/themes/noir-theme.el \
+          > euler-elsa.el
 
         emacs --batch --no-init-file --no-splash \
           -f package-activate-all \
           -L ${elsaExtension} \
           -L src \
+          -L src/lisp \
           -L src/themes \
           --eval "(setq ansi-inhibit-ansi t)" \
           --eval "(setq native-comp-jit-compilation nil)" \
@@ -301,9 +327,7 @@
           --load=elsa \
           --funcall=elsa-run \
           -with-exit \
-          src/early-init.el \
-          src/init.el \
-          src/themes/noir-theme.el \
+          euler-elsa.el \
           > $out/report.txt 2>&1
       '';
     };

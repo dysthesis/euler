@@ -23,11 +23,13 @@
 ;; Since the config lives in Nix, tell Emacs to put state in XDG_STATE_HOME, where
 ;; it is able to write to it.
 (let* ((store-dir (file-name-directory (or load-file-name buffer-file-name)))
+       (lisp-dir (expand-file-name "lisp" store-dir))
        (state-root
         (expand-file-name "euler"
                           (or (getenv "XDG_STATE_HOME")
                               (expand-file-name "~/.local/state/"))))
        (native-lisp-dir (expand-file-name "share/emacs/native-lisp" store-dir)))
+  (add-to-list 'load-path lisp-dir)
   (add-to-list 'custom-theme-load-path
                (expand-file-name "themes" store-dir))
   ;; Keep config in the store; direct all writable state elsewhere.
