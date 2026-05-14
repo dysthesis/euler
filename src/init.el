@@ -9,8 +9,51 @@
 (setq use-package-always-ensure nil
       use-package-ensure-function 'ignore)
 
-(require 'cl-lib)
-(require 'subr-x)
+(defun euler/find-if (predicate sequence)
+  "Return the first item in SEQUENCE for which PREDICATE is non-nil."
+  (catch 'found
+    (dolist (item sequence)
+      (when (funcall predicate item)
+        (throw 'found item)))
+    nil))
+
+(defun euler/some (predicate sequence)
+  "Return the first non-nil PREDICATE result for an item in SEQUENCE."
+  (catch 'found
+    (dolist (item sequence)
+      (let ((result (funcall predicate item)))
+        (when result
+          (throw 'found result))))
+    nil))
+
+(defun euler/remove-if (predicate sequence)
+  "Return a copy of SEQUENCE without items matching PREDICATE."
+  (let (result)
+    (dolist (item sequence (nreverse result))
+      (unless (funcall predicate item)
+        (push item result)))))
+
+(defun euler/sequence-empty-p (sequence)
+  "Return non-nil when SEQUENCE has no elements."
+  (if (listp sequence)
+      (null sequence)
+    (= (length sequence) 0)))
+
+(defun euler/string-join (strings separator)
+  "Join STRINGS with SEPARATOR."
+  (mapconcat #'identity strings separator))
+
+(defun euler/string-empty-p (string)
+  "Return non-nil when STRING is empty."
+  (= (length string) 0))
+
+(defun euler/string-blank-p (string)
+  "Return non-nil when STRING contains only whitespace."
+  (string-match-p "\\`[[:space:]]*\\'" string))
+
+(defun euler/string-trim (string)
+  "Return STRING without leading or trailing whitespace."
+  (replace-regexp-in-string "\\`[[:space:]]+\\|[[:space:]]+\\'" "" string))
 
 (defvar euler-inhibit-local-var-hooks nil
   "Non-nil disables Euler's MAJOR-MODE-local-vars-hook dispatcher.")
@@ -279,7 +322,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (require 'project)
-(require 'subr-x)
 
 (defface euler-mode-line-state
   '((t (:inherit mode-line-emphasis)))
@@ -329,20 +371,20 @@
 
 (defun euler/mode-line--join (items)
   "Join non-empty ITEMS with quiet spacing."
-  (string-join
+  (euler/string-join
    (delq nil
          (mapcar (lambda (item)
-                   (when (and item (not (string-empty-p item)))
+                   (when (and item (not (euler/string-empty-p item)))
                      item))
                  items))
    "  "))
 
 (defun euler/mode-line--pair (&rest items)
   "Join non-empty ITEMS as a compact icon/label pair."
-  (string-join
+  (euler/string-join
    (delq nil
          (mapcar (lambda (item)
-                   (when (and item (not (string-empty-p item)))
+                   (when (and item (not (euler/string-empty-p item)))
                      item))
                  items))
    " "))
@@ -397,8 +439,9 @@
 (defun euler/mode-line-buffer-name ()
   "Return compact buffer name, relative to project when possible."
   (let* ((file (buffer-file-name))
-         (root (when-let ((project (project-current nil)))
-                 (expand-file-name (project-root project))))
+         (root (let ((project (project-current nil)))
+                 (when project
+                   (expand-file-name (project-root project)))))
          (name (cond
                 ((and file root (file-in-directory-p file root))
                  (file-relative-name file root))
@@ -423,21 +466,23 @@
 
 (defun euler/mode-line-project-name ()
   "Return current project name."
-  (when-let* ((project (project-current nil))
-              (root (project-root project)))
-    (unless (and buffer-file-name
-                 (file-in-directory-p buffer-file-name root))
-      (propertize
-       (file-name-nondirectory
-        (directory-file-name root))
-       'face 'euler-mode-line-muted))))
+  (let ((project (project-current nil)))
+    (when project
+      (let ((root (project-root project)))
+        (when root
+          (unless (and buffer-file-name
+                       (file-in-directory-p buffer-file-name root))
+            (propertize
+             (file-name-nondirectory
+              (directory-file-name root))
+             'face 'euler-mode-line-muted)))))))
 
 (defun euler/mode-line-vc-branch ()
   "Return compact VC branch name."
   (when vc-mode
-    (let* ((text (string-trim vc-mode))
+    (let* ((text (euler/string-trim vc-mode))
            (branch (replace-regexp-in-string "\\`[[:alpha:]]+[:-]" "" text)))
-      (unless (string-empty-p branch)
+      (unless (euler/string-empty-p branch)
         (euler/mode-line--pair
          (euler/mode-line--octicon "nf-oct-git_branch" "git")
          (propertize branch 'face 'euler-mode-line-branch))))))
@@ -812,7 +857,7 @@
     (if gnu-ls
         (setq insert-directory-program gnu-ls
               dired-listing-switches
-              (string-join euler/dired-gnu-listing-switches " "))
+              (euler/string-join euler/dired-gnu-listing-switches " "))
       (setq dired-use-ls-dired nil
             dired-listing-switches euler/dired-basic-listing-switches))))
 
@@ -1001,17 +1046,18 @@
                 "\\|\\(?:\\.js\\)?\\.meta\\'"
                 "\\|\\.\\(?:elc\\|o\\|pyo\\|swp\\|class\\)\\'"))
   (setq dired-clean-confirm-killing-deleted-buffers nil)
-  (when-let ((cmd (euler/dired-open-externally-command)))
-    (setq dired-guess-shell-alist-user
-          `(("\\.\\(?:docx\\|pdf\\|djvu\\|eps\\)\\'" ,cmd)
-            ("\\.\\(?:jpe?g\\|png\\|gif\\|xpm\\)\\'" ,cmd)
-            ("\\.xcf\\'" ,cmd)
-            ("\\.csv\\'" ,cmd)
-            ("\\.tex\\'" ,cmd)
-            ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
-            ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
-            ("\\.html?\\'" ,cmd)
-            ("\\.md\\'" ,cmd))))
+  (let ((cmd (euler/dired-open-externally-command)))
+    (when cmd
+      (setq dired-guess-shell-alist-user
+            `(("\\.\\(?:docx\\|pdf\\|djvu\\|eps\\)\\'" ,cmd)
+              ("\\.\\(?:jpe?g\\|png\\|gif\\|xpm\\)\\'" ,cmd)
+              ("\\.xcf\\'" ,cmd)
+              ("\\.csv\\'" ,cmd)
+              ("\\.tex\\'" ,cmd)
+              ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
+              ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
+              ("\\.html?\\'" ,cmd)
+              ("\\.md\\'" ,cmd)))))
   (general-define-key
    :states '(normal motion)
    :keymaps 'dired-mode-map
@@ -1169,7 +1215,7 @@ remain, kill all Magit buffers for the repository."
   (interactive "P")
   (let ((topdir (magit-toplevel)))
     (funcall magit-bury-buffer-function kill-buffer)
-    (unless (cl-find-if
+    (unless (euler/find-if
              (lambda (window)
                (with-selected-window window
                  (and (derived-mode-p 'magit-mode)
@@ -1402,9 +1448,10 @@ remain, kill all Magit buffers for the repository."
 
   (with-eval-after-load 'git-rebase
     (dolist (key '(("M-k" . "gk") ("M-j" . "gj")))
-      (when-let ((desc (assoc (car key)
-                              evil-collection-magit-rebase-commands-w-descriptions)))
-        (setcar desc (cdr key))))
+      (let ((desc (assoc (car key)
+                         evil-collection-magit-rebase-commands-w-descriptions)))
+        (when desc
+          (setcar desc (cdr key)))))
     (evil-define-key* evil-collection-magit-state git-rebase-mode-map
       "gj" #'git-rebase-move-line-down
       "gk" #'git-rebase-move-line-up)))
@@ -1470,7 +1517,7 @@ every mode."
   "Return non-nil when format-on-save should not auto-enable here."
   (let ((disabled euler/format-on-save-disabled-modes))
     (or (eq major-mode 'fundamental-mode)
-        (string-blank-p (buffer-name))
+        (euler/string-blank-p (buffer-name))
         (eq disabled t)
         (memq major-mode (ensure-list disabled)))))
 
@@ -1504,8 +1551,11 @@ every mode."
     (setq-local euler/format-eglot--last euler/format-with))
   (setq-local euler/format-with
               (if euler/format-with-eglot-mode
-                  (cl-remove-duplicates (cons 'eglot (ensure-list euler/format-with))
-                                        :test #'eq)
+                  (cons 'eglot
+                        (euler/remove-if
+                         (lambda (formatter)
+                           (eq formatter 'eglot))
+                         (ensure-list euler/format-with)))
                 (prog1 (remq 'eglot (ensure-list euler/format-eglot--last))
                   (kill-local-variable 'euler/format-eglot--last)))))
 
@@ -1529,10 +1579,13 @@ every mode."
     (list :range (list :start (eglot--pos-to-lsp-position (point-min))
                        :end (eglot--pos-to-lsp-position (point-max))))))
 
-(cl-defun euler/format-eglot-buffer (&key buffer scratch callback &allow-other-keys)
+(defun euler/format-eglot-buffer (&rest args)
   "Format BUFFER with Eglot and apply edits to Apheleia SCRATCH."
   (require 'eglot)
-  (let (edits error linepos-fn move-fn)
+  (let ((buffer (plist-get args :buffer))
+        (scratch (plist-get args :scratch))
+        (callback (plist-get args :callback))
+        edits error linepos-fn move-fn)
     (with-current-buffer buffer
       (setq linepos-fn eglot-current-linepos-function
             move-fn eglot-move-to-linepos-function)
@@ -1552,10 +1605,10 @@ every mode."
                   (eglot--request
                    (eglot--current-server-or-lose)
                    :textDocument/rangeFormatting
-                   (append
-                    (list :textDocument (eglot--TextDocumentIdentifier)
-                          :options (euler/format--eglot-options))
-                    (euler/format--eglot-range-params)))))
+                   (list :textDocument (eglot--TextDocumentIdentifier)
+                         :options (euler/format--eglot-options)
+                         :range (plist-get (euler/format--eglot-range-params)
+                                           :range)))))
            (t
             (setq error "Eglot server does not support formatting")))
         (error
@@ -1594,21 +1647,22 @@ every mode."
 
 (defun euler/format--prettier-package-json-p ()
   "Return non-nil when nearest package.json has a prettier key."
-  (when-let ((dir (locate-dominating-file default-directory "package.json")))
-    (require 'json)
-    (let ((json-key-type 'alist)
-          (json-object-type 'alist)
-          (json-array-type 'list)
-          (json-false nil))
-      (ignore-errors
-        (assq 'prettier
-              (json-read-file (expand-file-name "package.json" dir)))))))
+  (let ((dir (locate-dominating-file default-directory "package.json")))
+    (when dir
+      (require 'json)
+      (let ((json-key-type 'alist)
+            (json-object-type 'alist)
+            (json-array-type 'list)
+            (json-false nil))
+        (ignore-errors
+          (assq 'prettier
+                (json-read-file (expand-file-name "package.json" dir))))))))
 
 (defun euler/format--prettier-configured-p ()
   "Return non-nil when current project has explicit Prettier config."
-  (or (cl-some (lambda (file)
-                 (locate-dominating-file default-directory file))
-               euler/format--prettier-config-files)
+  (or (euler/some (lambda (file)
+                    (locate-dominating-file default-directory file))
+                  euler/format--prettier-config-files)
       (euler/format--prettier-package-json-p)))
 
 (defun euler/format--prettier-indent-args ()
@@ -1679,12 +1733,13 @@ every mode."
                        prettier-svelte
                        prettier-typescript
                        prettier-yaml))
-    (euler/format--set-formatter
-     formatter
-     (append
-      (cl-remove-if #'euler/format--prettier-indent-form-p
-                    (euler/format--formatter formatter))
-      '((euler/format--prettier-indent-args)))))
+    (let ((command (euler/remove-if #'euler/format--prettier-indent-form-p
+                                    (euler/format--formatter formatter))))
+      (euler/format--set-formatter
+       formatter
+       (if command
+           (append command '((euler/format--prettier-indent-args))) ; elsa-disable-line
+         '((euler/format--prettier-indent-args))))))
 
   (apheleia-global-mode 1))
 
@@ -1692,8 +1747,9 @@ every mode."
   (delete-dups
    (delq nil
          (mapcar (lambda (program)
-                   (when-let ((path (executable-find program)))
-                     (directory-file-name (file-name-directory path))))
+                   (let ((path (executable-find program)))
+                     (when path
+                       (directory-file-name (file-name-directory path)))))
                  '("emacs-lsp-booster"
                    "ls"
                    "gls"
@@ -1710,11 +1766,11 @@ every mode."
     (dolist (dir (append directories
                          (split-string (or (getenv "PATH") "") path-separator t)))
       (when (and (stringp dir)
-                 (not (string-empty-p dir))
+                 (not (euler/string-empty-p dir))
                  (not (member dir merged)))
         (push dir merged)))
     (setq merged (nreverse merged))
-    (setenv "PATH" (string-join merged path-separator))
+    (setenv "PATH" (euler/string-join merged path-separator))
     (setq-local exec-path (append merged (and (memq nil exec-path) '(nil))))))
 
 (defgroup euler/lsp nil
@@ -1773,7 +1829,7 @@ If nil or 0, shut servers down immediately."
 
 (defun euler/lsp-disable-optimisation-maybe ()
   "Disable LSP optimisation if no live Eglot buffers remain."
-  (unless (cl-some #'euler/lsp--managed-buffer-p (buffer-list))
+  (unless (euler/some #'euler/lsp--managed-buffer-p (buffer-list))
     (euler/lsp-optimisation-mode -1)))
 
 (defun euler/lsp-sync-optimisation-mode ()
@@ -1784,10 +1840,11 @@ If nil or 0, shut servers down immediately."
 
 (defun euler/lsp--cancel-deferred-shutdown (server)
   "Cancel any deferred shutdown timer for SERVER."
-  (when-let ((timer (gethash server euler/lsp--deferred-shutdown-timers)))
-    (when (timerp timer)
-      (cancel-timer timer))
-    (remhash server euler/lsp--deferred-shutdown-timers)))
+  (let ((timer (gethash server euler/lsp--deferred-shutdown-timers)))
+    (when timer
+      (when (timerp timer)
+        (cancel-timer timer))
+      (remhash server euler/lsp--deferred-shutdown-timers))))
 
 (defun euler/lsp--shutdown-eglot-server-if-idle (shutdown server)
   "Run SHUTDOWN for SERVER if it still has no managed buffers."
@@ -1815,12 +1872,15 @@ If nil or 0, shut servers down immediately."
 (defun euler/lsp-defer-eglot-shutdown-a (fn &rest args)
   "Around advice for FN to defer Eglot auto-shutdown."
   (let ((shutdown (symbol-function 'eglot-shutdown)))
-    (cl-letf (((symbol-function 'eglot-shutdown)
-               (lambda (&optional server)
-                 (if server
-                     (euler/lsp--defer-eglot-shutdown shutdown server)
-                   (funcall shutdown server)))))
-      (apply fn args))))
+    (unwind-protect
+        (progn
+          (fset 'eglot-shutdown
+                (lambda (&optional server)
+                  (if server
+                      (euler/lsp--defer-eglot-shutdown shutdown server)
+                    (funcall shutdown server))))
+          (apply fn args))
+      (fset 'eglot-shutdown shutdown))))
 
 (defun euler/eglot-set-server (mode &rest alternatives)
   "Set ALTERNATIVES as the Eglot server for MODE.
@@ -1839,14 +1899,13 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
   "Show Eglot hover documentation for the thing at point."
   (interactive)
   (require 'eglot)
-  (require 'seq)
   (let* ((hover (jsonrpc-request (eglot--current-server-or-lose)
                                  :textDocument/hover
                                  (eglot--TextDocumentPositionParams)))
          (contents (and hover (plist-get hover :contents)))
          (range (and hover (plist-get hover :range))))
     (let ((blurb (and contents
-                      (not (seq-empty-p contents))
+                      (not (euler/sequence-empty-p contents))
                       (eglot--hover-info contents range)))
           (hint (thing-at-point 'symbol t)))
       (if blurb
@@ -1932,8 +1991,9 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
       (push
        (if (file-name-absolute-p dir)
            dir
-         (when-let ((root (locate-dominating-file path dir)))
-           (expand-file-name dir root)))
+         (let ((root (locate-dominating-file path dir)))
+           (when root
+             (expand-file-name dir root))))
        paths))
     (delq nil paths)))
 
@@ -2200,37 +2260,55 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
   "Compiled Tree-sitter queries for folding function bodies.")
 
 (defvar euler/treesit-fold-body-rules
-  '((c-mode . "((function_definition body: (compound_statement) @body))")
-    (c-ts-mode . "((function_definition body: (compound_statement) @body))")
-    (c++-mode . "((function_definition body: (compound_statement) @body))")
-    (c++-ts-mode . "((function_definition body: (compound_statement) @body))")
-    (emacs-lisp-mode . "[(function_definition) (macro_definition)] @fold")
-    (js-mode . "[(function_declaration body: (statement_block) @body)
-                  (function_expression body: (statement_block) @body)
-                  (arrow_function body: (statement_block) @body)
-                  (method_definition body: (statement_block) @body)]")
-    (js-ts-mode . "[(function_declaration body: (statement_block) @body)
-                     (function_expression body: (statement_block) @body)
-                     (arrow_function body: (statement_block) @body)
-                     (method_definition body: (statement_block) @body)]")
-    (python-mode . "((function_definition) @fold)")
-    (python-ts-mode . "((function_definition) @fold)")
-    (rust-mode . "((function_item body: (block) @body))")
-    (rust-ts-mode . "((function_item body: (block) @body))")
-    (rustic-mode . "((function_item body: (block) @body))")
-    (tsx-ts-mode . "[(function_declaration body: (statement_block) @body)
-                      (function_expression body: (statement_block) @body)
-                      (arrow_function body: (statement_block) @body)
-                      (method_definition body: (statement_block) @body)]")
-    (typescript-mode . "[(function_declaration body: (statement_block) @body)
-                          (function_expression body: (statement_block) @body)
-                          (arrow_function body: (statement_block) @body)
-                          (method_definition body: (statement_block) @body)]")
-    (typescript-ts-mode . "[(function_declaration body: (statement_block) @body)
-                             (function_expression body: (statement_block) @body)
-                             (arrow_function body: (statement_block) @body)
-                             (method_definition body: (statement_block) @body)]"))
-  "Tree-sitter queries that capture function and method bodies.")
+  '((:name c-family
+     :modes (c-mode c-ts-mode c++-mode c++-ts-mode)
+     :query "((function_definition body: (compound_statement) @body))")
+    (:name emacs-lisp
+     :modes (emacs-lisp-mode)
+     :query "[(function_definition) (macro_definition)] @fold")
+    (:name javascript
+     :modes (js-mode js-ts-mode typescript-mode typescript-ts-mode tsx-ts-mode)
+     :query "[(function_declaration body: (statement_block) @body)
+               (function_expression body: (statement_block) @body)
+               (arrow_function body: (statement_block) @body)
+               (method_definition body: (statement_block) @body)]")
+    (:name python
+     :modes (python-mode python-ts-mode)
+     :query "((function_definition) @fold)")
+    (:name rust
+     :modes (rust-mode rust-ts-mode rustic-mode)
+     :query "((function_item body: (block) @body))"))
+  "Rules for auto-folding function and method bodies.
+
+Each rule is a plist with:
+- :name, a unique symbol used by `euler/treesit-fold-add-body-rule'.
+- :modes, major modes where the rule applies.
+- :query, a Tree-sitter query that captures @body or @fold.
+
+Capture @body when the captured node is the body block.  Capture @fold when the
+captured node is the whole function-like node and `treesit-fold' already knows
+how to derive its fold range.")
+
+;; (euler/treesit-fold-add-body-rule :: (function (symbol mixed string) mixed))
+(defun euler/treesit-fold-add-body-rule (name modes query)
+  "Register body-fold QUERY named NAME for MODES.
+
+QUERY should capture @body for body nodes or @fold for whole function nodes.
+Rules added later win because lookup uses the first matching rule."
+  (let ((rule (list :name name
+                    :modes (if (listp modes) modes (list modes))
+                    :query query)))
+    (add-to-list 'euler/treesit-fold-body-rules rule)
+    rule))
+
+;; (euler/treesit-fold--body-rule :: (function (symbol) mixed))
+(defun euler/treesit-fold--body-rule (&optional mode)
+  "Return body-fold rule for MODE."
+  (let ((mode (or mode major-mode)))
+    (euler/find-if
+     (lambda (rule)
+       (memq mode (plist-get rule :modes)))
+     euler/treesit-fold-body-rules)))
 
 ;; (euler/treesit-fold--body-query :: (function (mixed string) mixed))
 (defun euler/treesit-fold--body-query (language query)
@@ -2268,32 +2346,36 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
 (defun euler/treesit-fold--body-candidates ()
   "Return body fold candidates for the current buffer.
 Each candidate is (TARGET-RANGE . FOLD-RANGE)."
-  (when-let* ((query-text (alist-get major-mode euler/treesit-fold-body-rules))
-              (_ (treesit-fold-ready-p))
-              (root (treesit-buffer-root-node))
-              (language (treesit-node-language root))
-              (query (euler/treesit-fold--body-query language query-text)))
-    (condition-case nil
-        (let (candidates)
-          (dolist (capture (treesit-query-capture root query) (nreverse candidates))
-            (let* ((capture-name (car capture))
-                   (node (cdr capture))
-                   (target (euler/treesit-fold--target-node-for-capture
-                            capture-name node))
-                   (target-range (and target
-                                      (cons (treesit-node-start target)
-                                            (treesit-node-end target))))
-                   (fold-range (euler/treesit-fold--fold-range-for-capture
-                                capture-name node)))
-              (when (and target-range
-                         (euler/treesit-fold--range-valid-p fold-range))
-                (push (cons target-range fold-range) candidates)))))
-      (treesit-query-error nil))))
+  (let* ((rule (euler/treesit-fold--body-rule))
+         (query-text (and rule (plist-get rule :query))))
+    (when (and query-text
+               (treesit-fold-ready-p))
+      (let* ((root (treesit-buffer-root-node))
+             (language (and root (treesit-node-language root)))
+             (query (and language
+                         (euler/treesit-fold--body-query language query-text))))
+        (when query
+          (condition-case nil
+              (let (candidates)
+                (dolist (capture (treesit-query-capture root query) (nreverse candidates))
+                  (let* ((capture-name (car capture))
+                         (node (cdr capture))
+                         (target (euler/treesit-fold--target-node-for-capture
+                                  capture-name node))
+                         (target-range (and target
+                                            (cons (treesit-node-start target)
+                                                  (treesit-node-end target))))
+                         (fold-range (euler/treesit-fold--fold-range-for-capture
+                                      capture-name node)))
+                    (when (and target-range
+                               (euler/treesit-fold--range-valid-p fold-range))
+                      (push (cons target-range fold-range) candidates)))))
+            (treesit-query-error nil)))))))
 
 ;; (euler/treesit-fold--overlay-at-range-p :: (function (mixed) bool))
 (defun euler/treesit-fold--overlay-at-range-p (range) ; elsa-disable-line
   "Return non-nil if a `treesit-fold' overlay already covers RANGE."
-  (cl-some
+  (euler/some
    (lambda (ov)
      (and (eq (overlay-get ov 'creator) 'treesit-fold)
           (= (overlay-start ov) (car range))
@@ -2349,14 +2431,16 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
 (defun euler/treesit-fold-open-at-point ()
   "Open the folded function body that contains or follows point."
   (when (bound-and-true-p treesit-fold-mode)
-    (when-let* ((candidate (cl-find-if
-                            (lambda (candidate)
-                              (euler/treesit-fold--candidate-at-point-p
-                               candidate (point)))
-                            (euler/treesit-fold--body-candidates)))
-                (range (cdr candidate)))
-      (when (euler/treesit-fold--delete-overlays-at-range range)
-        (run-hooks 'treesit-fold-on-fold-hook)))))
+    (let ((candidate (euler/find-if
+                      (lambda (candidate)
+                        (euler/treesit-fold--candidate-at-point-p
+                         candidate (point)))
+                      (euler/treesit-fold--body-candidates))))
+      (when candidate
+        (let ((range (cdr candidate)))
+          (when range
+            (when (euler/treesit-fold--delete-overlays-at-range range)
+              (run-hooks 'treesit-fold-on-fold-hook))))))))
 
 (use-package treesit-fold
   :ensure t
