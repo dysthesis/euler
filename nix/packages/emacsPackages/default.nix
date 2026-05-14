@@ -1,33 +1,33 @@
 {
   pkgs,
   emacs,
+  parsePackagesFromPackageRequires,
 }: let
   sources = import ./npins;
   pinnedSources = builtins.removeAttrs sources ["__functor"];
   base = pkgs.emacsPackagesFor emacs;
 
-  # Build a source from npins into an Emacs package.
   buildOne = epkgs: name: source: let
     imported = source {};
   in
-    epkgs.trivialBuild {
+    epkgs.trivialBuild rec {
       pname = name;
       version = imported.revision or "unstable";
       src = imported.outPath;
-      packageRequires = [];
-      meta = {
-        homepage =
-          if imported ? repository
-          then imported.repository.url or null
-          else null;
-      };
+      packageRequires =
+        builtins.readFile "${src}/${name}.el"
+        |> parsePackagesFromPackageRequires
+        |> builtins.map (x: epkgs.${x});
+      meta.homepage =
+        if imported ? repository
+        then imported.repository.url or null
+        else null;
     };
-in
-  # Map the builder into all the sources
-  base.overrideScope
-  (
-    final: prev:
-      builtins.mapAttrs
-      (name: source: buildOne final name source)
-      pinnedSources
-  )
+
+  # Expose this so emacsWithPackagesFromUsePackage can use it as `override`
+  scopeOverride = final: _prev:
+    builtins.mapAttrs (name: source: buildOne final name source) pinnedSources;
+in {
+  packages = base.overrideScope scopeOverride;
+  inherit scopeOverride;
+}

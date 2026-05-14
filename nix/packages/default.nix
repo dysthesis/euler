@@ -2,18 +2,21 @@
   perSystem = {
     pkgs,
     lib,
+    parse,
     ...
   }: let
     emacs = pkgs.emacs-unstable-pgtk;
 
     emacsPackages = import ./emacsPackages {
       inherit pkgs emacs;
+      inherit (parse) parsePackagesFromPackageRequires;
     };
     cfgSource = pkgs.callPackage ./cfg.nix {};
 
     mkEmacsWithPackages = extraEmacsPackages:
       pkgs.callPackage ./emacsWithPackages.nix {
         inherit emacs extraEmacsPackages;
+        inherit (emacsPackages) scopeOverride;
         cfg = cfgSource;
       };
 
@@ -257,9 +260,7 @@
       ''}
     '';
   in {
-    legacyPackages = {
-      inherit emacsPackages;
-    };
+    legacyPackages = {inherit (emacsPackages) packages;};
 
     packages = rec {
       # Emacs wrapped with whatever packages it needs
@@ -269,7 +270,7 @@
       euler = pkgs.callPackage ./euler.nix {inherit emacsWithPackages cfg lib;};
 
       # Emacs packages that I use that are not in emacs-overlay or nixpkgs.
-      inherit (emacsPackages) eglot-booster;
+      inherit (emacsPackages.packages) eglot-booster ts-fold;
 
       default = euler;
     };
