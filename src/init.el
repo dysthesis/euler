@@ -1257,6 +1257,10 @@ remain, kill all Magit buffers for the repository."
 (use-package diff-hl
   :ensure t
   :demand t
+  :preface
+  (defvar diff-hl-side)
+  (defvar text-scale-mode-amount)
+  (defvar text-scale-mode-step)
   :custom
   (vc-git-diff-switches '("--histogram"))
   (diff-hl-flydiff-delay 0.5)
@@ -1275,11 +1279,11 @@ remain, kill all Magit buffers for the repository."
   			   (numberp text-scale-mode-amount))
   		      (expt text-scale-mode-step text-scale-mode-amount)
   		    1))
-  	   (spacing (or (and (display-graphic-p) (default-value 'line-spacing)) 0))
-  	   (h (+ (ceiling (* (frame-char-height) scale))
-  		 (if (floatp spacing)
-  		     (truncate (* (frame-char-height) spacing))
-  		   spacing)))
+	   (spacing (or (and (display-graphic-p) (default-value 'line-spacing)) 0))
+	   (h (+ (ceiling (* (frame-char-height) scale))
+		 (if (floatp spacing)
+		     (truncate (* (frame-char-height) spacing)) ; elsa-disable-line
+		   spacing)))
   	   (w (min (frame-parameter nil (intern (format "%s-fringe" diff-hl-side)))
   		   16))
   	   (_ (if (zerop w) (setq w 16))))
@@ -2175,15 +2179,199 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
     "m t a" '(rustic-cargo-test :wk "All")
     "m t t" '(rustic-cargo-current-test :wk "Current test")))
 
+(declare-function treesit-fold--create-overlay "treesit-fold" (range))
+(declare-function treesit-fold--get-fold-range "treesit-fold" (node))
+(declare-function treesit-fold-ready-p "treesit-fold")
+(declare-function treesit-buffer-root-node "treesit")
+(declare-function treesit-node-language "treesit" (node))
+(declare-function treesit-node-parent "treesit" (node))
+(declare-function treesit-node-start "treesit" (node))
+(declare-function treesit-node-end "treesit" (node))
+(declare-function treesit-query-capture "treesit" (node query &optional beg end node-only))
+(declare-function treesit-query-compile "treesit" (language query &optional eager))
+
+(defvar treesit-fold-mode)
+(defvar treesit-fold-on-fold-hook)
+
+(defvar-local euler/treesit-fold-bodies-initialized nil
+  "Non-nil means this buffer already got its initial body folds.")
+
+(defvar euler/treesit-fold--body-query-cache (make-hash-table :test 'equal)
+  "Compiled Tree-sitter queries for folding function bodies.")
+
+(defvar euler/treesit-fold-body-rules
+  '((c-mode . "((function_definition body: (compound_statement) @body))")
+    (c-ts-mode . "((function_definition body: (compound_statement) @body))")
+    (c++-mode . "((function_definition body: (compound_statement) @body))")
+    (c++-ts-mode . "((function_definition body: (compound_statement) @body))")
+    (emacs-lisp-mode . "[(function_definition) (macro_definition)] @fold")
+    (js-mode . "[(function_declaration body: (statement_block) @body)
+                  (function_expression body: (statement_block) @body)
+                  (arrow_function body: (statement_block) @body)
+                  (method_definition body: (statement_block) @body)]")
+    (js-ts-mode . "[(function_declaration body: (statement_block) @body)
+                     (function_expression body: (statement_block) @body)
+                     (arrow_function body: (statement_block) @body)
+                     (method_definition body: (statement_block) @body)]")
+    (python-mode . "((function_definition) @fold)")
+    (python-ts-mode . "((function_definition) @fold)")
+    (rust-mode . "((function_item body: (block) @body))")
+    (rust-ts-mode . "((function_item body: (block) @body))")
+    (rustic-mode . "((function_item body: (block) @body))")
+    (tsx-ts-mode . "[(function_declaration body: (statement_block) @body)
+                      (function_expression body: (statement_block) @body)
+                      (arrow_function body: (statement_block) @body)
+                      (method_definition body: (statement_block) @body)]")
+    (typescript-mode . "[(function_declaration body: (statement_block) @body)
+                          (function_expression body: (statement_block) @body)
+                          (arrow_function body: (statement_block) @body)
+                          (method_definition body: (statement_block) @body)]")
+    (typescript-ts-mode . "[(function_declaration body: (statement_block) @body)
+                             (function_expression body: (statement_block) @body)
+                             (arrow_function body: (statement_block) @body)
+                             (method_definition body: (statement_block) @body)]"))
+  "Tree-sitter queries that capture function and method bodies.")
+
+;; (euler/treesit-fold--body-query :: (function (mixed string) mixed))
+(defun euler/treesit-fold--body-query (language query)
+  "Return compiled QUERY for LANGUAGE."
+  (let ((key (cons language query)))
+    (or (gethash key euler/treesit-fold--body-query-cache)
+        (puthash key
+                 (treesit-query-compile language query)
+                 euler/treesit-fold--body-query-cache))))
+
+;; (euler/treesit-fold--range-valid-p :: (function (mixed) bool))
+(defun euler/treesit-fold--range-valid-p (range)
+  "Return non-nil when RANGE can be folded."
+  (and (consp range)
+       (integer-or-marker-p (car range)) ; elsa-disable-line
+       (integer-or-marker-p (cdr range)) ; elsa-disable-line
+       (< (car range) (cdr range)) ; elsa-disable-line
+       (/= (line-number-at-pos (car range) t) ; elsa-disable-line
+           (line-number-at-pos (cdr range) t)))) ; elsa-disable-line
+
+;; (euler/treesit-fold--fold-range-for-capture :: (function (mixed mixed) mixed))
+(defun euler/treesit-fold--fold-range-for-capture (capture node)
+  "Return fold range for CAPTURE on NODE."
+  (pcase capture
+    ((or 'body 'fold) (treesit-fold--get-fold-range node))))
+
+;; (euler/treesit-fold--target-node-for-capture :: (function (mixed mixed) mixed))
+(defun euler/treesit-fold--target-node-for-capture (capture node)
+  "Return the syntax node used as jump target for CAPTURE on NODE."
+  (pcase capture
+    ('body (or (treesit-node-parent node) node))
+    ('fold node)))
+
+;; (euler/treesit-fold--body-candidates :: (function () mixed))
+(defun euler/treesit-fold--body-candidates ()
+  "Return body fold candidates for the current buffer.
+Each candidate is (TARGET-RANGE . FOLD-RANGE)."
+  (when-let* ((query-text (alist-get major-mode euler/treesit-fold-body-rules))
+              (_ (treesit-fold-ready-p))
+              (root (treesit-buffer-root-node))
+              (language (treesit-node-language root))
+              (query (euler/treesit-fold--body-query language query-text)))
+    (condition-case nil
+        (let (candidates)
+          (dolist (capture (treesit-query-capture root query) (nreverse candidates))
+            (let* ((capture-name (car capture))
+                   (node (cdr capture))
+                   (target (euler/treesit-fold--target-node-for-capture
+                            capture-name node))
+                   (target-range (and target
+                                      (cons (treesit-node-start target)
+                                            (treesit-node-end target))))
+                   (fold-range (euler/treesit-fold--fold-range-for-capture
+                                capture-name node)))
+              (when (and target-range
+                         (euler/treesit-fold--range-valid-p fold-range))
+                (push (cons target-range fold-range) candidates)))))
+      (treesit-query-error nil))))
+
+;; (euler/treesit-fold--overlay-at-range-p :: (function (mixed) bool))
+(defun euler/treesit-fold--overlay-at-range-p (range) ; elsa-disable-line
+  "Return non-nil if a `treesit-fold' overlay already covers RANGE."
+  (cl-some
+   (lambda (ov)
+     (and (eq (overlay-get ov 'creator) 'treesit-fold)
+          (= (overlay-start ov) (car range))
+          (= (overlay-end ov) (cdr range))))
+   (overlays-in (car range) (cdr range))))
+
+;; (euler/treesit-fold--delete-overlays-at-range :: (function (mixed) bool))
+(defun euler/treesit-fold--delete-overlays-at-range (range)
+  "Delete `treesit-fold' overlays that exactly cover RANGE."
+  (let (deleted)
+    (dolist (ov (overlays-in (car range) (cdr range)))
+      (when (and (eq (overlay-get ov 'creator) 'treesit-fold)
+                 (= (overlay-start ov) (car range))
+                 (= (overlay-end ov) (cdr range)))
+        (delete-overlay ov)
+        (setq deleted t)))
+    deleted))
+
+;; (euler/treesit-fold-close-function-bodies :: (function () mixed))
+(defun euler/treesit-fold-close-function-bodies ()
+  "Fold all function and method bodies in the current buffer."
+  (interactive)
+  (when (bound-and-true-p treesit-fold-mode)
+    (let (folded)
+      (dolist (candidate (euler/treesit-fold--body-candidates))
+        (let ((range (cdr candidate)))
+          (unless (euler/treesit-fold--overlay-at-range-p range)
+            (when (treesit-fold--create-overlay range)
+              (setq folded t)))))
+      (when folded
+        (run-hooks 'treesit-fold-on-fold-hook))
+      folded)))
+
+;; (euler/treesit-fold-close-function-bodies-once :: (function () mixed))
+(defun euler/treesit-fold-close-function-bodies-once ()
+  "Fold function bodies once when `treesit-fold-mode' first starts."
+  (when (and treesit-fold-mode
+             (not euler/treesit-fold-bodies-initialized))
+    (setq-local euler/treesit-fold-bodies-initialized t)
+    (euler/treesit-fold-close-function-bodies)))
+
+;; (euler/treesit-fold--candidate-at-point-p :: (function (mixed int) bool))
+(defun euler/treesit-fold--candidate-at-point-p (candidate point)
+  "Return non-nil when CANDIDATE is a good fold to open for POINT."
+  (let* ((target (car candidate))
+         (range (cdr candidate))
+         (line (line-number-at-pos point t)))
+    (or (<= (car target) point (cdr target))
+        (= line (line-number-at-pos (car target) t))
+        (= line (line-number-at-pos (car range) t)))))
+
+;; (euler/treesit-fold-open-at-point :: (function () mixed))
+(defun euler/treesit-fold-open-at-point ()
+  "Open the folded function body that contains or follows point."
+  (when (bound-and-true-p treesit-fold-mode)
+    (when-let* ((candidate (cl-find-if
+                            (lambda (candidate)
+                              (euler/treesit-fold--candidate-at-point-p
+                               candidate (point)))
+                            (euler/treesit-fold--body-candidates)))
+                (range (cdr candidate)))
+      (when (euler/treesit-fold--delete-overlays-at-range range)
+        (run-hooks 'treesit-fold-on-fold-hook)))))
+
 (use-package treesit-fold
   :ensure t
   :config
-  (global-treesit-fold-mode)
   (setq treesit-fold-line-count-show t)  ; Show line count in folded regions
   (setq treesit-fold-line-count-format " < %d lines > ")
+  (add-hook 'treesit-fold-mode-hook
+            #'euler/treesit-fold-close-function-bodies-once)
+  (add-hook 'xref-after-jump-hook #'euler/treesit-fold-open-at-point)
+  (add-hook 'xref-after-return-hook #'euler/treesit-fold-open-at-point)
+  (global-treesit-fold-mode)
   ;; TODO: DWIM keybind to use <TAB> to toggle folding where applicable
   (dysthesis/start/leader-keys
-    "c f" '(treesit-fold-toggle :wk "[C]ode [F]old")))
+    "c f" '(treesit-fold-toggle :wk "[C]ode [F]old")
+    "c F" '(euler/treesit-fold-close-function-bodies :wk "[C]ode [F]old bodies")))
 
 ;; Load direnv environments from .envrc
 (use-package envrc
