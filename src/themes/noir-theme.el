@@ -139,6 +139,12 @@
    ;; Reserve red for actual warning sentinels (signal, deprecated, etc.).
    `(font-lock-warning-face            ((t (:foreground ,red :weight bold))))
 
+
+   ;; ---- treesit-fold faces ----
+   `(treesit-fold-replacement-face
+     ((t (:foreground ,gray5 :slant italic
+		      :box (:line-width -1 :color ,gray3)))))
+
    ;; ---- nix-mode (non-treesit) custom faces ----
    `(nix-keyword-face                  ((t (:inherit default))))
    `(nix-keyword-warning-face          ((t (:inherit font-lock-warning-face))))

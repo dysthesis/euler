@@ -101,7 +101,7 @@
   (setq-default line-spacing 0.25)
 
   (setq-default display-fill-column-indicator-column 80)
-	(setq-default display-fill-column-indicator-character ?\x2502)
+  (setq-default display-fill-column-indicator-character ?\x2502)
   (set-face-attribute 'fill-column-indicator nil :background nil :foreground "gray3")
   (global-display-fill-column-indicator-mode 1)
   (setq major-mode-remap-alist
@@ -2512,7 +2512,7 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
   :ensure t
   :config
   (setq treesit-fold-line-count-show t)  ; Show line count in folded regions
-  (setq treesit-fold-line-count-format " < %d lines > ")
+  (setq treesit-fold-line-count-format " ⋯ %d lines ⋯ ")
   (unless (alist-get 'zig-ts-mode treesit-fold-range-alist)
     (add-to-list 'treesit-fold-range-alist
                  (cons 'zig-ts-mode (treesit-fold-parsers-zig))))
