@@ -126,7 +126,6 @@
   (cua-mode)
   
   ;; For terminal users, make the mouse more useful
-  
   (xterm-mouse-mode 1)
   
   ;; Display line numbers in programming mode

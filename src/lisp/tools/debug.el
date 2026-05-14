@@ -31,7 +31,7 @@ The default value assumes that `codelldb' is somewhere in Emacs' $PATH.")
 
   :config
   ;; Pulse source line (performance hit)
-  (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
+  ;; (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)
 
   ;; Save buffers on startup, useful for interpreted languages
   ;; (add-hook 'dape-start-hook (lambda () (save-some-buffers t t)))
