@@ -13,6 +13,19 @@
       "url": "https://github.com/jdtsmith/eglot-booster/archive/cab7803c4f0adc7fff9da6680f90110674bb7a22.tar.gz",
       "hash": "sha256-xUBQrQpw+JZxcqT1fy/8C2tjKwa7sLFHXamBm45Fa4Y="
     },
+    "majutsu": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "0WD0",
+        "repo": "majutsu"
+      },
+      "branch": "main",
+      "submodules": false,
+      "revision": "f33d37bd158de1217df85e5b889267c7cbd8eca9",
+      "url": "https://github.com/0WD0/majutsu/archive/f33d37bd158de1217df85e5b889267c7cbd8eca9.tar.gz",
+      "hash": "sha256-km8AaLPK8jV8zA3nxTJuoLJuO9SJT9hS0MqB2J0wX+4="
+    },
     "nix-ts-mode": {
       "type": "Git",
       "repository": {

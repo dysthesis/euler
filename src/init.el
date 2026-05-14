@@ -1354,7 +1354,15 @@ remain, kill all Magit buffers for the repository."
   (define-key transient-map [escape] #'transient-quit-one)
 
   (dysthesis/start/leader-keys
-    "g g" '(magit :wk "Magit")))
+    "g g" '(magit :wk "Ma[G]it")))
+
+;; TODO: Add support in noir-theme
+;; TODO: Custom commands like `tug' to pull along bookmarks to @-
+(use-package majutsu
+  :ensure t
+  :after (transient)
+  :config (dysthesis/start/leader-keys
+	    "g j" '(majutsu :wk "Ma[J]utsu")))
 
 (use-package diff-hl
   :ensure t
