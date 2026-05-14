@@ -251,6 +251,56 @@
   :ensure t
   :config (solaire-global-mode +1))
 
+(use-package indent-bars
+  :ensure t
+  :unless noninteractive
+  :hook (prog-mode . indent-bars-mode)
+  :config
+  (setq indent-bars-treesit-support t
+	indent-bars-treesit-wrap '((python argument_list parameters
+					   list list_comprehension
+					   dictionary dictionary_comprehension
+					   parenthesized_expression subscript)
+				   (c argument_list parameter_list
+				      init_declarator parenthesized_expression)
+				   (rust trait_item impl_item 
+					 macro_definition macro_invocation 
+					 struct_item enum_item mod_item 
+					 const_item let_declaration 
+					 function_item for_expression 
+					 if_expression loop_expression 
+					 while_expression match_expression 
+					 match_arm call_expression 
+					 token_tree token_tree_pattern 
+					 token_repetition)
+				   (toml table array comment)
+				   (yaml block_mapping_pair comment))
+	indent-bars-treesit-wrap '((rust arguments parameters))
+        indent-bars-prefer-character
+        (or
+         ;; Bitmaps are far slower on MacOS, inexplicably, but this needs more
+         ;; testing to see if it's specific to ns or emacs-mac builds, or is
+         ;; just a general MacOS issue.
+         (featurep :system 'macos)
+         ;; FIX: A bitmap init bug in emacs-pgtk (before v30) could cause
+         ;; crashes (see jdtsmith/indent-bars#3).
+         (and (featurep 'pgtk)
+              (< emacs-major-version 30)))
+	;; Show indent guides starting from the first column.
+        indent-bars-starting-column 0
+        ;; Make indent guides subtle; the default is too distractingly colorful.
+        indent-bars-width-frac 0.15  ; make bitmaps thinner
+        indent-bars-color-by-depth nil
+        indent-bars-color '(font-lock-comment-face :face-bg nil :blend 0.425)
+        ;; Don't highlight current level indentation; it's distracting and is
+        ;; unnecessary overhead for little benefit.
+        indent-bars-highlight-current-depth nil
+        ;; The default is `t', which shows indent-bars even on blank lines
+        ;; beyond the end of an indented block. Setting it to `nil' will cause
+        ;; gaps in the indent guides, which looks odd. `least' is a good
+        ;; compromise, and doesn't suffer the scrolling issue.
+        indent-bars-display-on-blank-lines 'least))
+
 (use-package ligature
   :ensure t
   :config
@@ -261,18 +311,18 @@
                           '("ff" "fi" "fl" "ffi" "ffl"))
   ;; Enable programming ligatures in programming modes.
   (ligature-set-ligatures 'prog-mode '("|||>" "<|||" "<==>" "<!--" "####" "~~>" "***" "||=" "||>"
-                                       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
-                                       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
-                                       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
-                                       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
-                                       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
-                                       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
-                                       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
-                                       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
-                                       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
-                                       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
-                                       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
-                                       "\\\\" "://"))
+				       ":::" "::=" "=:=" "===" "==>" "=!=" "=>>" "=<<" "=/=" "!=="
+				       "!!." ">=>" ">>=" ">>>" ">>-" ">->" "->>" "-->" "---" "-<<"
+				       "<~~" "<~>" "<*>" "<||" "<|>" "<$>" "<==" "<=>" "<=<" "<->"
+				       "<--" "<-<" "<<=" "<<-" "<<<" "<+>" "</>" "###" "#_(" "..<"
+				       "..." "+++" "/==" "///" "_|_" "www" "&&" "^=" "~~" "~@" "~="
+				       "~>" "~-" "**" "*>" "*/" "||" "|}" "|]" "|=" "|>" "|-" "{|"
+				       "[|" "]#" "::" ":=" ":>" ":<" "$>" "==" "=>" "!=" "!!" ">:"
+				       ">=" ">>" ">-" "-~" "-|" "->" "--" "-<" "<~" "<*" "<|" "<:"
+				       "<$" "<=" "<>" "<-" "<<" "<+" "</" "#{" "#[" "#:" "#=" "#!"
+				       "##" "#(" "#?" "#_" "%%" ".=" ".-" ".." ".?" "+>" "++" "?:"
+				       "?=" "?." "??" ";;" "/*" "/=" "/>" "//" "__" "~~" "(*" "*)"
+				       "\\\\" "://"))
   ;; Typst derives from text-mode, so give it code-facing ligatures explicitly.
   (ligature-set-ligatures 'typst-ts-mode '("->" "=>" "<-" "<=" ">=" "==" "!=" "===" "!=="
                                            ":=" "::" "..." ".." "&&" "||" "//" "/*" "*/"))
@@ -392,7 +442,7 @@
 (defun euler/mode-line--icon (icon fallback)
   "Return Nerd ICON or FALLBACK with icon styling."
   (propertize (or (and euler-mode-line-icons-enabled icon) fallback)
-              'face 'euler-mode-line-icon))
+	      'face 'euler-mode-line-icon))
 
 (defun euler/mode-line--mode-icon ()
   "Return icon for the current major mode."
@@ -471,10 +521,10 @@
       (let ((root (project-root project)))
         (when root
           (unless (and buffer-file-name
-                       (file-in-directory-p buffer-file-name root))
+		       (file-in-directory-p buffer-file-name root))
             (propertize
              (file-name-nondirectory
-              (directory-file-name root))
+	      (directory-file-name root))
              'face 'euler-mode-line-muted)))))))
 
 (defun euler/mode-line-vc-branch ()
@@ -492,23 +542,23 @@
   (euler/mode-line--pair
    (euler/mode-line--mode-icon)
    (propertize (or (alist-get major-mode
-                              '((emacs-lisp-mode . "elisp")
+			      '((emacs-lisp-mode . "elisp")
                                 (lisp-interaction-mode . "lisp")
                                 (nix-mode . "nix")
                                 (org-mode . "org")
                                 (markdown-mode . "md"))
-                              nil nil #'eq)
+			      nil nil #'eq)
                    (replace-regexp-in-string
                     "\\(?:-ts\\)?-mode\\'" ""
                     (symbol-name major-mode)))
-               'face 'euler-mode-line-mode)))
+	       'face 'euler-mode-line-mode)))
 
 (defun euler/mode-line-position ()
   "Return current line and column."
   (euler/mode-line--pair
    (euler/mode-line--codicon "nf-cod-location" "@")
    (propertize (format "%d:%d" (line-number-at-pos) (current-column))
-               'face 'euler-mode-line-position)))
+	       'face 'euler-mode-line-position)))
 
 (defun euler/mode-line-render (left right)
   "Render LEFT and RIGHT mode line segments."
@@ -565,7 +615,7 @@
   :ensure nil
   :after vertico
   :bind (:map vertico-map
-              ("M-DEL" . vertico-directory-delete-word)))
+	      ("M-DEL" . vertico-directory-delete-word)))
 
 ;; Marginalia: annotations for minibuffer
 (use-package marginalia
@@ -846,7 +896,7 @@
 (defun euler/dired-configure-listing-switches ()
   "Prefer GNU ls switches, falling back to portable Dired switches."
   (let* ((current-ls (or (and (boundp 'insert-directory-program)
-                              insert-directory-program)
+			      insert-directory-program)
                          "ls"))
          (gnu-ls (cond
                   ((euler/dired--gnu-ls-p current-ls)
@@ -856,8 +906,8 @@
                    "gls"))))
     (if gnu-ls
         (setq insert-directory-program gnu-ls
-              dired-listing-switches
-              (euler/string-join euler/dired-gnu-listing-switches " "))
+	      dired-listing-switches
+	      (euler/string-join euler/dired-gnu-listing-switches " "))
       (setq dired-use-ls-dired nil
             dired-listing-switches euler/dired-basic-listing-switches))))
 
@@ -893,15 +943,15 @@
                    (window-dedicated-p window))
           (with-current-buffer (window-buffer window)
             (when (dirvish-curr)
-              (let ((dirvish-reuse-session nil))
+	      (let ((dirvish-reuse-session nil))
                 (let ((selected-window (selected-window)))
                   (unwind-protect
-                      (progn
+		      (progn
                         (select-window window)
                         (dirvish-quit))
                     (when (window-live-p selected-window)
-                      (select-window selected-window)))))
-              (throw 'done t))))))))
+		      (select-window selected-window)))))
+	      (throw 'done t))))))))
 
 (defun euler/dired-open-externally-command ()
   "Return a platform command for opening files outside Emacs."
@@ -1050,14 +1100,14 @@
     (when cmd
       (setq dired-guess-shell-alist-user
             `(("\\.\\(?:docx\\|pdf\\|djvu\\|eps\\)\\'" ,cmd)
-              ("\\.\\(?:jpe?g\\|png\\|gif\\|xpm\\)\\'" ,cmd)
-              ("\\.xcf\\'" ,cmd)
-              ("\\.csv\\'" ,cmd)
-              ("\\.tex\\'" ,cmd)
-              ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
-              ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
-              ("\\.html?\\'" ,cmd)
-              ("\\.md\\'" ,cmd)))))
+	      ("\\.\\(?:jpe?g\\|png\\|gif\\|xpm\\)\\'" ,cmd)
+	      ("\\.xcf\\'" ,cmd)
+	      ("\\.csv\\'" ,cmd)
+	      ("\\.tex\\'" ,cmd)
+	      ("\\.\\(?:mp4\\|mkv\\|avi\\|flv\\|rm\\|rmvb\\|ogv\\)\\(?:\\.part\\)?\\'" ,cmd)
+	      ("\\.\\(?:mp3\\|flac\\)\\'" ,cmd)
+	      ("\\.html?\\'" ,cmd)
+	      ("\\.md\\'" ,cmd)))))
   (general-define-key
    :states '(normal motion)
    :keymaps 'dired-mode-map
@@ -1161,7 +1211,7 @@ May be an integer or a cons cell of left and right fringe widths."
            (and (eq major-mode 'magit-status-mode)
                 (memq buffer-mode '(magit-diff-mode magit-stash-mode)))
            (not (memq buffer-mode
-                      '(magit-process-mode
+		      '(magit-process-mode
                         magit-revision-mode
                         magit-stash-mode
                         magit-status-mode))))
@@ -1217,9 +1267,9 @@ remain, kill all Magit buffers for the repository."
     (funcall magit-bury-buffer-function kill-buffer)
     (unless (euler/find-if
              (lambda (window)
-               (with-selected-window window
+	       (with-selected-window window
                  (and (derived-mode-p 'magit-mode)
-                      (equal magit--default-directory topdir))))
+		      (equal magit--default-directory topdir))))
              (window-list nil 'no-minibuf t))
       (euler/magit-quit-all))))
 
@@ -1242,7 +1292,7 @@ remain, kill all Magit buffers for the repository."
   (when (and (bound-and-true-p evil-local-mode)
              (fboundp 'evil-insert-state)
              (not (and (fboundp 'evil-emacs-state-p)
-                       (evil-emacs-state-p)))
+		       (evil-emacs-state-p)))
              (bobp)
              (eolp))
     (evil-insert-state)))
@@ -1286,7 +1336,7 @@ remain, kill all Magit buffers for the repository."
   (add-hook 'magit-diff-visit-file-hook #'euler/magit-reveal-point-if-invisible)
   (add-hook 'magit-status-mode-hook
             (lambda ()
-              (setq-local long-line-threshold nil)))
+	      (setq-local long-line-threshold nil)))
 
   (transient-append-suffix 'magit-fetch "-p"
     '("-t" "Fetch all tags" ("-t" "--tags")))
@@ -1377,12 +1427,12 @@ remain, kill all Magit buffers for the repository."
 
   (define-key magit-mode-map [remap magit-browse-thing] #'forge-browse)
   (define-key magit-remote-section-map [remap magit-browse-thing]
-              #'forge-browse-remote)
+	      #'forge-browse-remote)
   (define-key magit-branch-section-map [remap magit-browse-thing]
-              #'forge-browse-branch)
+	      #'forge-browse-branch)
 
   (add-to-list 'display-buffer-alist
-               '("^\\*?[0-9]+:\\(?:new-\\|[0-9]+$\\)"
+	       '("^\\*?[0-9]+:\\(?:new-\\|[0-9]+$\\)"
                  (display-buffer-reuse-window display-buffer-below-selected)
                  (window-height . 0.45))))
 
@@ -1401,7 +1451,7 @@ remain, kill all Magit buffers for the repository."
         '(overlong-summary-line non-empty-second-line))
   (add-hook 'git-commit-mode-hook
             (lambda ()
-              (setq-local fill-column 72)))
+	      (setq-local fill-column 72)))
   (add-hook 'git-commit-setup-hook
             #'euler/git-commit-start-in-insert-state-maybe))
 
@@ -1440,10 +1490,10 @@ remain, kill all Magit buffers for the repository."
   (general-define-key
    :states 'normal
    :keymaps '(magit-status-mode-map
-              magit-stash-mode-map
-              magit-revision-mode-map
-              magit-process-mode-map
-              magit-diff-mode-map)
+	      magit-stash-mode-map
+	      magit-revision-mode-map
+	      magit-process-mode-map
+	      magit-diff-mode-map)
    "TAB" #'magit-section-toggle)
 
   (with-eval-after-load 'git-rebase
@@ -1550,7 +1600,7 @@ every mode."
   (unless (local-variable-p 'euler/format-eglot--last)
     (setq-local euler/format-eglot--last euler/format-with))
   (setq-local euler/format-with
-              (if euler/format-with-eglot-mode
+	      (if euler/format-with-eglot-mode
                   (cons 'eglot
                         (euler/remove-if
                          (lambda (formatter)
@@ -1577,7 +1627,7 @@ every mode."
   "Return range-formatting params covering the current buffer."
   (save-excursion
     (list :range (list :start (eglot--pos-to-lsp-position (point-min))
-                       :end (eglot--pos-to-lsp-position (point-max))))))
+		       :end (eglot--pos-to-lsp-position (point-max))))))
 
 (defun euler/format-eglot-buffer (&rest args)
   "Format BUFFER with Eglot and apply edits to Apheleia SCRATCH."
@@ -1626,9 +1676,9 @@ every mode."
   (when (and apheleia-formatters-respect-indent-level
              (not (locate-dominating-file default-directory ".clang-format")))
     (let ((indent (and (boundp 'c-basic-offset)
-                       (symbol-value 'c-basic-offset))))
+		       (symbol-value 'c-basic-offset))))
       (format "--style={IndentWidth: %d}"
-              (if (numberp indent) indent tab-width)))))
+	      (if (numberp indent) indent tab-width)))))
 
 (defconst euler/format--prettier-config-files
   '(".prettierrc"
@@ -1725,14 +1775,14 @@ every mode."
      (euler/format--clang-indent-style)))
 
   (dolist (formatter '(prettier
-                       prettier-css
-                       prettier-html
-                       prettier-javascript
-                       prettier-json
-                       prettier-scss
-                       prettier-svelte
-                       prettier-typescript
-                       prettier-yaml))
+		       prettier-css
+		       prettier-html
+		       prettier-javascript
+		       prettier-json
+		       prettier-scss
+		       prettier-svelte
+		       prettier-typescript
+		       prettier-yaml))
     (let ((command (euler/remove-if #'euler/format--prettier-indent-form-p
                                     (euler/format--formatter formatter))))
       (euler/format--set-formatter
@@ -1749,7 +1799,7 @@ every mode."
          (mapcar (lambda (program)
                    (let ((path (executable-find program)))
                      (when path
-                       (directory-file-name (file-name-directory path)))))
+		       (directory-file-name (file-name-directory path)))))
                  '("emacs-lsp-booster"
                    "ls"
                    "gls"
@@ -1808,7 +1858,7 @@ If nil or 0, shut servers down immediately."
   (if euler/lsp-optimisation-mode
       (unless euler/lsp--optimisation-init-p
         (setq euler/lsp--default-read-process-output-max
-              (default-value 'read-process-output-max))
+	      (default-value 'read-process-output-max))
         (setq euler/lsp--default-gc-cons-threshold gc-cons-threshold)
         (setq-default read-process-output-max (* 4 1024 1024))
         (unless (fboundp 'igc-info)
@@ -1877,7 +1927,7 @@ If nil or 0, shut servers down immediately."
           (fset 'eglot-shutdown
                 (lambda (&optional server)
                   (if server
-                      (euler/lsp--defer-eglot-shutdown shutdown server)
+		      (euler/lsp--defer-eglot-shutdown shutdown server)
                     (funcall shutdown server))))
           (apply fn args))
       (fset 'eglot-shutdown shutdown))))
@@ -1888,7 +1938,7 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
   (with-eval-after-load 'eglot
     (add-to-list 'eglot-server-programs
                  (cons mode
-                       (if (cdr alternatives)
+		       (if (cdr alternatives)
                            (eglot-alternatives alternatives)
                          (car alternatives))))))
 
@@ -1905,21 +1955,21 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
          (contents (and hover (plist-get hover :contents)))
          (range (and hover (plist-get hover :range))))
     (let ((blurb (and contents
-                      (not (euler/sequence-empty-p contents))
-                      (eglot--hover-info contents range)))
+		      (not (euler/sequence-empty-p contents))
+		      (eglot--hover-info contents range)))
           (hint (thing-at-point 'symbol t)))
       (if blurb
           (with-current-buffer
-              (or (and (buffer-live-p euler/eglot--help-buffer)
-                       euler/eglot--help-buffer)
+	      (or (and (buffer-live-p euler/eglot--help-buffer)
+		       euler/eglot--help-buffer)
                   (setq euler/eglot--help-buffer
                         (generate-new-buffer "*eglot-help*")))
             (with-help-window (current-buffer)
-              (rename-buffer
-               (format "*eglot-help%s*"
-                       (if hint (format " for %s" hint) ""))
-               t)
-              (with-current-buffer standard-output
+	      (rename-buffer
+	       (format "*eglot-help%s*"
+		       (if hint (format " for %s" hint) ""))
+	       t)
+	      (with-current-buffer standard-output
                 (insert blurb)
                 (setq-local nobreak-char-display nil))))
         (display-local-help)))))
@@ -1947,7 +1997,7 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
         (re-search-forward
          regexp
          (and (boundp 'magic-mode-regexp-match-limit)
-              magic-mode-regexp-match-limit)
+	      magic-mode-regexp-match-limit)
          t)))))
 
 (defun euler/cc-c-c++-mode ()
@@ -1970,17 +2020,17 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
              (let ((id "[A-Za-z_][A-Za-z0-9_]*")
                    (ws "[ \t\r]+")
                    (ws? "[ \t\r]*"))
-               (concat "^" ws? "\\(?:"
-                       "using" ws "\\(?:namespace" ws "std;\\|std::\\)"
-                       "\\|namespace\\(?:" ws id "\\)?" ws? "{"
-                       "\\|class" ws id ws? "[:{\n]"
-                       "\\|template" ws? "<.*>"
-                       "\\|#include" ws? "<\\(?:algorithm\\|array\\|iostream\\|map\\|memory\\|string\\|utility\\|vector\\)>"
-                       "\\)")))
+	       (concat "^" ws? "\\(?:"
+		       "using" ws "\\(?:namespace" ws "std;\\|std::\\)"
+		       "\\|namespace\\(?:" ws id "\\)?" ws? "{"
+		       "\\|class" ws id ws? "[:{\n]"
+		       "\\|template" ws? "<.*>"
+		       "\\|#include" ws? "<\\(?:algorithm\\|array\\|iostream\\|map\\|memory\\|string\\|utility\\|vector\\)>"
+		       "\\)")))
             'c++-mode)
            (t euler/cc-default-header-file-mode)))
          (remapped (or (alist-get mode major-mode-remap-alist nil nil #'eq)
-                       mode)))
+		       mode)))
     (funcall remapped)))
 
 (defun euler/cc-resolve-include-paths ()
@@ -2016,7 +2066,7 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
        (or (assoc 'access-label c-syntactic-context)
            (save-excursion
              (save-match-data
-               (re-search-backward
+	       (re-search-backward
                 "\\(?:p\\(?:ublic\\|r\\(?:otected\\|ivate\\)\\)\\)"
                 (c-langelem-pos langelem)
                 t))))
@@ -2121,9 +2171,9 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
         eglot-autoshutdown t
         eglot-stay-out-of
         (cons 'company
-              (remq 'company
+	      (remq 'company
                     (ensure-list (and (boundp 'eglot-stay-out-of)
-                                      eglot-stay-out-of)))))
+				      eglot-stay-out-of)))))
   :custom
   (eglot-send-changes-idle-time 0.1)
   (eglot-extend-to-xref t)
@@ -2208,7 +2258,7 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
     "Run cargo audit for the current Rust project."
     (interactive)
     (rustic-run-cargo-command `(,(rustic-cargo-bin) "audit")
-                              (list :clippy-fix t
+			      (list :clippy-fix t
                                     :mode 'rustic-cargo-custom-command-mode)))
 
   (with-eval-after-load 'org-src
@@ -2217,7 +2267,7 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
     (add-to-list 'org-src-lang-modes '("rust" . rustic)))
 
   (add-to-list 'display-buffer-alist
-               '("\\`\\*\\(rustic-compilation\\|cargo-run\\)"
+	       '("\\`\\*\\(rustic-compilation\\|cargo-run\\)"
                  (display-buffer-reuse-window display-buffer-at-bottom)
                  (window-height . 0.25)))
 
@@ -2263,31 +2313,31 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
 
 (defvar euler/treesit-fold-body-rules
   '((:name c-family
-     :modes (c-mode c-ts-mode c++-mode c++-ts-mode)
-     :query "((function_definition body: (compound_statement) @body))")
+	   :modes (c-mode c-ts-mode c++-mode c++-ts-mode)
+	   :query "((function_definition body: (compound_statement) @body))")
     (:name emacs-lisp
-     :modes (emacs-lisp-mode)
-     :query "[(function_definition) (macro_definition)] @fold")
+	   :modes (emacs-lisp-mode)
+	   :query "[(function_definition) (macro_definition)] @fold")
     (:name go
-     :modes (go-mode go-ts-mode)
-     :query "[(function_declaration body: (block) @body)
+	   :modes (go-mode go-ts-mode)
+	   :query "[(function_declaration body: (block) @body)
                (method_declaration body: (block) @body)
                (func_literal body: (block) @body)]")
     (:name javascript
-     :modes (js-mode js-ts-mode typescript-mode typescript-ts-mode tsx-ts-mode)
-     :query "[(function_declaration body: (statement_block) @body)
+	   :modes (js-mode js-ts-mode typescript-mode typescript-ts-mode tsx-ts-mode)
+	   :query "[(function_declaration body: (statement_block) @body)
                (function_expression body: (statement_block) @body)
                (arrow_function body: (statement_block) @body)
                (method_definition body: (statement_block) @body)]")
     (:name python
-     :modes (python-mode python-ts-mode)
-     :query "((function_definition) @fold)")
+	   :modes (python-mode python-ts-mode)
+	   :query "((function_definition) @fold)")
     (:name rust
-     :modes (rust-mode rust-ts-mode rustic-mode)
-     :query "((function_item body: (block) @body))")
+	   :modes (rust-mode rust-ts-mode rustic-mode)
+	   :query "((function_item body: (block) @body))")
     (:name zig
-     :modes (zig-mode zig-ts-mode)
-     :query "((Decl (FnProto) (Block) @body))"))
+	   :modes (zig-mode zig-ts-mode)
+	   :query "((Decl (FnProto) (Block) @body))"))
   "Rules for auto-folding function and method bodies.
 
 Each rule is a plist with:
@@ -2359,14 +2409,14 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
   (let* ((rule (euler/treesit-fold--body-rule))
          (query-text (and rule (plist-get rule :query))))
     (when (and query-text
-               (treesit-fold-ready-p))
+	       (treesit-fold-ready-p))
       (let* ((root (treesit-buffer-root-node))
              (language (and root (treesit-node-language root)))
              (query (and language
                          (euler/treesit-fold--body-query language query-text))))
         (when query
           (condition-case nil
-              (let (candidates)
+	      (let (candidates)
                 (dolist (capture (treesit-query-capture root query) (nreverse candidates))
                   (let* ((capture-name (car capture))
                          (node (cdr capture))
@@ -2376,10 +2426,10 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
                                             (cons (treesit-node-start target)
                                                   (treesit-node-end target))))
                          (fold-range (euler/treesit-fold--fold-range-for-capture
-                                      capture-name node)))
+				      capture-name node)))
                     (when (and target-range
-                               (euler/treesit-fold--range-valid-p fold-range))
-                      (push (cons target-range fold-range) candidates)))))
+			       (euler/treesit-fold--range-valid-p fold-range))
+		      (push (cons target-range fold-range) candidates)))))
             (treesit-query-error nil)))))))
 
 ;; (euler/treesit-fold--overlay-at-range-p :: (function (mixed) bool))
@@ -2414,7 +2464,7 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
         (let ((range (cdr candidate)))
           (unless (euler/treesit-fold--overlay-at-range-p range)
             (when (treesit-fold--create-overlay range)
-              (setq folded t)))))
+	      (setq folded t)))))
       (when folded
         (run-hooks 'treesit-fold-on-fold-hook))
       folded)))
@@ -2442,15 +2492,15 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
   "Open the folded function body that contains or follows point."
   (when (bound-and-true-p treesit-fold-mode)
     (let ((candidate (euler/find-if
-                      (lambda (candidate)
+		      (lambda (candidate)
                         (euler/treesit-fold--candidate-at-point-p
                          candidate (point)))
-                      (euler/treesit-fold--body-candidates))))
+		      (euler/treesit-fold--body-candidates))))
       (when candidate
         (let ((range (cdr candidate)))
           (when range
             (when (euler/treesit-fold--delete-overlays-at-range range)
-              (run-hooks 'treesit-fold-on-fold-hook))))))))
+	      (run-hooks 'treesit-fold-on-fold-hook))))))))
 
 (use-package treesit-fold
   :ensure t
@@ -2469,6 +2519,22 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
   (dysthesis/start/leader-keys
     "c f" '(treesit-fold-toggle :wk "[C]ode [F]old")
     "c F" '(euler/treesit-fold-close-function-bodies :wk "[C]ode [F]old bodies")))
+
+(use-package zig-ts-mode
+  :ensure t
+  :defer t
+  :config
+  (setq major-mode-remap-alist
+	'((yaml-mode . yaml-ts-mode)))
+  ;; HACK: Rely on `major-mode-remap-defaults' instead (upstream also doesn't
+  ;;   check if the grammars are ready before adding these entries, which will
+  ;;   bork zig buffers).
+  (cl-callf2 rassq-delete-all 'zig-ts-mode auto-mode-alist))
+
+(use-package zig-mode
+  :defer t
+  :config
+  (setq zig-format-on-save nil)) ;; use apheleia
 
 ;; Load direnv environments from .envrc
 (use-package envrc
