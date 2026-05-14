@@ -12,6 +12,19 @@
       "revision": "cab7803c4f0adc7fff9da6680f90110674bb7a22",
       "url": "https://github.com/jdtsmith/eglot-booster/archive/cab7803c4f0adc7fff9da6680f90110674bb7a22.tar.gz",
       "hash": "sha256-xUBQrQpw+JZxcqT1fy/8C2tjKwa7sLFHXamBm45Fa4Y="
+    },
+    "treesit-fold": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "emacs-tree-sitter",
+        "repo": "treesit-fold"
+      },
+      "branch": "master",
+      "submodules": false,
+      "revision": "e6b215b8f25f8c58606ab4f850794b61b61111e1",
+      "url": "https://github.com/emacs-tree-sitter/treesit-fold/archive/e6b215b8f25f8c58606ab4f850794b61b61111e1.tar.gz",
+      "hash": "sha256-7IyYF/i2Bdq/Olv4MUalpVkZXve9IIN9r+IdHBhf6C0="
     }
   },
   "version": 7

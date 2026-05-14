@@ -2090,6 +2090,8 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
    '((rustic-mode :language-id "rust") rust-mode rust-ts-mode)
    '("rust-analyzer")))
 
+
+
 ;; Speed bonus for LSP. Requires the `emacs-lsp-booster' binary.
 (use-package eglot-booster
   :ensure t
@@ -2167,6 +2169,16 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
     "m t" '(:ignore t :wk "Cargo test")
     "m t a" '(rustic-cargo-test :wk "All")
     "m t t" '(rustic-cargo-current-test :wk "Current test")))
+
+(use-package treesit-fold
+  :ensure t
+  :config
+  (global-treesit-fold-mode)
+  (setq treesit-fold-line-count-show t)  ; Show line count in folded regions
+  (setq treesit-fold-line-count-format " < %d lines > ")
+  ;; TODO: DWIM keybind to use <TAB> to toggle folding where applicable
+  (dysthesis/start/leader-keys
+    "c f" '(treesit-fold-toggle :wk "[C]ode [F]old")))
 
 ;; Load direnv environments from .envrc
 (use-package envrc
