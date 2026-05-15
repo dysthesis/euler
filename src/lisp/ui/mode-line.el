@@ -145,7 +145,7 @@
     (when buffer-read-only
       (propertize "RO" 'face 'euler-mode-line-read-only))
     (when (buffer-modified-p)
-      (propertize "*" 'face 'euler-mode-line-modified)))))
+      (propertize "󰆓 " 'face 'euler-mode-line-modified)))))
 
 (defun euler/mode-line-project-name ()
   "Return current project name."
