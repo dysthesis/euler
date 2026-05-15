@@ -214,6 +214,7 @@ every mode."
   (with-eval-after-load 'eglot
     (add-hook 'eglot-managed-mode-hook #'euler/format-with-eglot-toggle))
   :config
+  (push '(alejandra . ("alejandra" "-")) apheleia-formatters)
   (define-key apheleia-mode-map [remap save-buffer] #'euler/format-save-buffer)
   (define-key apheleia-mode-map [remap basic-save-buffer] #'euler/format-save-buffer)
 
@@ -224,7 +225,9 @@ every mode."
   (dolist (entry '((sh-mode . shfmt)
                    (cuda-mode . clang-format)
                    (cuda-ts-mode . clang-format)
-                   (protobuf-mode . clang-format)))
+                   (protobuf-mode . clang-format)
+		   (nix-mode . alejandra)
+		   (nix-ts-mode . alejandra)))
     (add-to-list 'apheleia-mode-alist entry))
 
   (dolist (entry '((cuda-mode . ".cu")
