@@ -14,16 +14,17 @@ If nil or 0, shut servers down immediately."
                  (number :tag "Delay seconds"))
   :group 'euler/lsp)
 
-(defvar euler/lsp--default-read-process-output-max nil
+(defvar euler/lsp--default-read-process-output-max
+  (default-value 'read-process-output-max)
   "Saved `read-process-output-max' before LSP optimisation.")
 
-(defvar euler/lsp--default-gc-cons-threshold nil
+(defvar euler/lsp--default-gc-cons-threshold gc-cons-threshold
   "Saved `gc-cons-threshold' before LSP optimisation.")
 
 (defvar euler/lsp--optimisation-init-p nil
   "Non-nil when LSP optimisation defaults have been saved.")
 
-(defvar euler/lsp--deferred-shutdown-timers (make-hash-table :test #'eq)
+(defvar euler/lsp--deferred-shutdown-timers (make-hash-table)
   "Deferred Eglot shutdown timers by server.")
 
 (defvar euler/lsp-optimisation-mode-map (make-sparse-keymap)
@@ -35,20 +36,14 @@ If nil or 0, shut servers down immediately."
   :global t
   :init-value nil
   (if euler/lsp-optimisation-mode
-      (unless euler/lsp--optimisation-init-p
-        (setq euler/lsp--default-read-process-output-max
-	      (default-value 'read-process-output-max))
-        (setq euler/lsp--default-gc-cons-threshold gc-cons-threshold)
+      (progn
         (setq-default read-process-output-max (* 4 1024 1024))
         (unless (fboundp 'igc-info)
-          (setq gc-cons-threshold (* 64 1024 1024)))
-        (setq euler/lsp--optimisation-init-p t))
-    (when euler/lsp--optimisation-init-p
-      (setq-default read-process-output-max
-                    euler/lsp--default-read-process-output-max)
-      (unless (fboundp 'igc-info)
-        (setq gc-cons-threshold euler/lsp--default-gc-cons-threshold))
-      (setq euler/lsp--optimisation-init-p nil))))
+          (setq gc-cons-threshold (* 64 1024 1024))))
+    (setq-default read-process-output-max
+                  euler/lsp--default-read-process-output-max)
+    (unless (fboundp 'igc-info)
+      (setq gc-cons-threshold euler/lsp--default-gc-cons-threshold))))
 
 (defun euler/lsp--managed-buffer-p (buffer)
   "Return non-nil when BUFFER is currently managed by Eglot."
@@ -184,7 +179,7 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
   (add-hook 'eglot-managed-mode-hook #'euler/lsp-sync-optimisation-mode)
   (advice-add 'eglot--managed-mode :around #'euler/lsp-defer-eglot-shutdown-a)
 
-)
+  )
 
 ;; Speed bonus for LSP. Requires the `emacs-lsp-booster' binary.
 (use-package eglot-booster
