@@ -44,14 +44,16 @@
 (use-package emacs
   :hook
   ;; Auto parenthesis matching
-  ((prog-mode . electric-pair-mode))
+  ((prog-mode . electric-pair-mode)
+   (prog-mode . display-fill-column-indicator-mode)
+   (text-mode . display-fill-column-indicator-mode))
+  
   :config
   (setq-default line-spacing 0.25)
   (setq window-sides-vertical t) ;; Left and right side windows occupy full frame height
   (setq-default display-fill-column-indicator-column 80)
   (setq-default display-fill-column-indicator-character ?\x2502)
   (set-face-attribute 'fill-column-indicator nil :background nil :foreground "gray3")
-  (global-display-fill-column-indicator-mode 1)
   (setq major-mode-remap-alist
 	'((yaml-mode . yaml-ts-mode)
 	  (nix-mode . nix-ts-mode)
