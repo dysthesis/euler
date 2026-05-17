@@ -115,34 +115,51 @@ Rules added later win because lookup uses the first matching rule."
     ('body (or (treesit-node-parent node) node))
     ('fold node)))
 
+(defcustom euler/treesit-fold-context-lines 200
+  "Lines above and below point to search for foldable bodies.
+Larger values are more thorough but slower in big files."
+  :type 'integer
+  :group 'euler/lsp)
+
 ;; (euler/treesit-fold--body-candidates :: (function () mixed))
 (defun euler/treesit-fold--body-candidates ()
-  "Return body fold candidates for the current buffer.
+  "Return body fold candidates near point in the current buffer.
 Each candidate is (TARGET-RANGE . FOLD-RANGE)."
   (let* ((rule (euler/treesit-fold--body-rule))
          (query-text (and rule (plist-get rule :query))))
-    (when (and query-text
-	       (treesit-fold-ready-p))
+    (when (and query-text (treesit-fold-ready-p))
       (let* ((root (treesit-buffer-root-node))
              (language (and root (treesit-node-language root)))
              (query (and language
-                         (euler/treesit-fold--body-query language query-text))))
+                         (euler/treesit-fold--body-query language query-text)))
+             ;; Restrict capture to a window around point instead of
+             ;; the full buffer, so large files don't pay full-tree cost.
+             (beg (save-excursion
+                    (forward-line (- euler/treesit-fold-context-lines))
+                    (point)))
+             (end (save-excursion
+                    (forward-line euler/treesit-fold-context-lines)
+                    (point))))
         (when query
           (condition-case nil
-	      (let (candidates)
-                (dolist (capture (treesit-query-capture root query) (nreverse candidates))
+              (let (candidates)
+                (dolist (capture
+                         (treesit-query-capture root query beg end) 
+                         (nreverse candidates))
                   (let* ((capture-name (car capture))
                          (node (cdr capture))
                          (target (euler/treesit-fold--target-node-for-capture
                                   capture-name node))
-                         (target-range (and target
-                                            (cons (treesit-node-start target)
-                                                  (treesit-node-end target))))
-                         (fold-range (euler/treesit-fold--fold-range-for-capture
-				      capture-name node)))
+                         (target-range
+                          (and target
+                               (cons (treesit-node-start target)
+                                     (treesit-node-end target))))
+                         (fold-range
+                          (euler/treesit-fold--fold-range-for-capture
+                           capture-name node)))
                     (when (and target-range
-			       (euler/treesit-fold--range-valid-p fold-range))
-		      (push (cons target-range fold-range) candidates)))))
+                               (euler/treesit-fold--range-valid-p fold-range))
+                      (push (cons target-range fold-range) candidates)))))
             (treesit-query-error nil)))))))
 
 ;; (euler/treesit-fold--overlay-at-range-p :: (function (mixed) bool))
