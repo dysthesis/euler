@@ -119,19 +119,15 @@
      'face 'euler-mode-line-state
      'help-echo (format "Evil state: %s" evil-state))))
 
-(defun euler/mode-line-buffer-name ()
-  "Return compact buffer name, relative to project when possible."
+(defun euler/mode-line-buffer-name (project)
+  "Return compact buffer name, relative to PROJECT when possible."
   (let* ((file (buffer-file-name))
-         (root (let ((project (project-current nil)))
-                 (when project
-                   (expand-file-name (project-root project)))))
+         (root (when project (expand-file-name (project-root project))))
          (name (cond
                 ((and file root (file-in-directory-p file root))
                  (file-relative-name file root))
-                (file
-                 (abbreviate-file-name file))
-                (t
-                 (buffer-name))))
+                (file (abbreviate-file-name file))
+                (t (buffer-name))))
          (limit (max 20 (/ (window-total-width) 2))))
     (propertize
      (euler/mode-line--truncate-left name limit)
@@ -147,18 +143,17 @@
     (when (buffer-modified-p)
       (propertize "󰆓 " 'face 'euler-mode-line-modified)))))
 
-(defun euler/mode-line-project-name ()
+
+(defun euler/mode-line-project-name (project)
   "Return current project name."
-  (let ((project (project-current nil)))
-    (when project
-      (let ((root (project-root project)))
-        (when root
-          (unless (and buffer-file-name
-		       (file-in-directory-p buffer-file-name root))
-            (propertize
-             (file-name-nondirectory
-	      (directory-file-name root))
-             'face 'euler-mode-line-muted)))))))
+  (when project
+    (let ((root (project-root project)))
+      (when (and root
+                 (not (and buffer-file-name
+                           (file-in-directory-p buffer-file-name root))))
+        (propertize
+         (file-name-nondirectory (directory-file-name root))
+         'face 'euler-mode-line-muted)))))
 
 (defun euler/mode-line-vc-branch ()
   "Return compact VC branch name."
@@ -203,18 +198,19 @@
 
 (defun euler/mode-line ()
   "Return the Euler mode line."
-  (euler/mode-line-render
-   (euler/mode-line--join
-    (list
-     (euler/mode-line-evil-state)
-     (euler/mode-line-buffer-name)
-     (euler/mode-line-buffer-status)))
-   (euler/mode-line--join
-    (list
-     (euler/mode-line-project-name)
-     (euler/mode-line-vc-branch)
-     (euler/mode-line-major-mode)
-     (euler/mode-line-position)))))
+  (let ((project (project-current nil)))
+    (euler/mode-line-render
+     (euler/mode-line--join
+      (list
+       (euler/mode-line-evil-state)
+       (euler/mode-line-buffer-name project)
+       (euler/mode-line-buffer-status)))
+     (euler/mode-line--join
+      (list
+       (euler/mode-line-project-name project)
+       (euler/mode-line-vc-branch)
+       (euler/mode-line-major-mode)
+       (euler/mode-line-position))))))
 
 (setq-default mode-line-format '((:eval (euler/mode-line))))
 
