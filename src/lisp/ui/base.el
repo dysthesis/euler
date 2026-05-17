@@ -24,11 +24,11 @@
 					 if_expression loop_expression 
 					 while_expression match_expression 
 					 match_arm call_expression 
-					 token_tree token_tree_pattern 
+					 token_tree token_tree_pattern
+					 arguments parameters
 					 token_repetition)
 				   (toml table array comment)
 				   (yaml block_mapping_pair comment))
-	indent-bars-treesit-wrap '((rust arguments parameters))
         indent-bars-prefer-character
         (or
          ;; Bitmaps are far slower on MacOS, inexplicably, but this needs more
