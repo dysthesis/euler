@@ -155,6 +155,8 @@
   ;; https://todo.sr.ht/~ashton314/emacs-euler/11
   (setopt auto-revert-interval 5)
   (setopt auto-revert-check-vc-info t)
+  ;; auto-revert file-backed buffers (excludes magit, dired, etc.)
+  (setopt global-auto-revert-non-file-buffers nil)
   (global-auto-revert-mode)
 
   ;; Save history of minibuffer
