@@ -231,7 +231,7 @@ remain, kill all Magit buffers for the repository."
   :custom
   (vc-git-diff-switches '("--histogram"))
   (diff-hl-flydiff-delay 0.5)
-  (diff-hl-update-async t)
+  (diff-hl-update-async nil) ; remove async polling; hook handles Magit
   (diff-hl-show-staged-changes nil)
   (diff-hl-draw-borders nil)
   :hook (vc-dir-mode . turn-on-diff-hl-mode)
