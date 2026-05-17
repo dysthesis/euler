@@ -122,9 +122,6 @@
   (blink-cursor-mode -1)                                ; Steady cursor
   (pixel-scroll-precision-mode)                         ; Smooth scrolling
   
-  ;; Use common keystrokes by default
-  (cua-mode)
-  
   ;; For terminal users, make the mouse more useful
   (xterm-mouse-mode 1)
   
