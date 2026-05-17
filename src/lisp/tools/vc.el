@@ -64,27 +64,23 @@ May be an integer or a cons cell of left and right fringe widths."
   (let ((buffer-mode (buffer-local-value 'major-mode buffer)))
     (display-buffer
      buffer
-     (cond
-      ((and (eq buffer-mode 'magit-status-mode)
-            (get-buffer-window buffer))
-       '(display-buffer-reuse-window))
-      ((or (bound-and-true-p git-commit-mode)
-           (eq buffer-mode 'magit-process-mode)
-           (eq major-mode 'magit-log-select-mode))
-       (let ((size (if (eq buffer-mode 'magit-process-mode) 0.35 0.7)))
-         `(display-buffer-below-selected
-           . ((window-height . ,(truncate (* (window-height) size)))))))
-      ((or (not (derived-mode-p 'magit-mode))
-           (and (eq major-mode 'magit-status-mode)
-                (memq buffer-mode '(magit-diff-mode magit-stash-mode)))
-           (not (memq buffer-mode
-		      '(magit-process-mode
-                        magit-revision-mode
-                        magit-stash-mode
-                        magit-status-mode))))
-       '(display-buffer-same-window))
-      (t
-       '(euler/magit--display-buffer-in-direction))))))
+     (pcase buffer-mode
+       ((guard (and (eq buffer-mode 'magit-status-mode)
+                    (get-buffer-window buffer)))
+        '(display-buffer-reuse-window))
+       ((or 'magit-process-mode
+            (guard (bound-and-true-p git-commit-mode))
+            (guard (eq major-mode 'magit-log-select-mode)))
+        (let ((size (if (eq buffer-mode 'magit-process-mode) 0.35 0.7)))
+          `(display-buffer-below-selected
+            . ((window-height . ,(truncate (* (window-height) size)))))))
+       ((or 'magit-diff-mode 'magit-stash-mode
+            (guard (not (derived-mode-p 'magit-mode)))
+            (guard (and (eq major-mode 'magit-status-mode)
+                        (memq buffer-mode '(magit-diff-mode magit-stash-mode)))))
+        '(display-buffer-same-window))
+       (_
+        '(euler/magit--display-buffer-in-direction))))))
 
 (defun euler/magit-save-window-state ()
   "Save point and window start before refreshing an active Magit region."
