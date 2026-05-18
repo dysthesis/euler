@@ -42,6 +42,9 @@
 (defvar euler-mode-line-icons-enabled (require 'nerd-icons nil t)
   "Non-nil when Nerd Icons can be used in the Euler mode line.")
 
+(defvar-local euler-mode-line--buffer-info-cache nil
+  "Cached buffer/project display data for the Euler mode line.")
+
 (defun euler/mode-line--truncate-left (text max-width)
   "Return TEXT shortened from the left to MAX-WIDTH characters."
   (let ((max-width (max 4 max-width)))
@@ -119,20 +122,39 @@
      'face 'euler-mode-line-state
      'help-echo (format "Evil state: %s" evil-state))))
 
-(defun euler/mode-line-buffer-name (project)
-  "Return compact buffer name, relative to PROJECT when possible."
+(defun euler/mode-line--buffer-info (project)
+  "Return cached buffer display metadata for PROJECT."
   (let* ((file (buffer-file-name))
          (root (when project (expand-file-name (project-root project))))
-         (name (cond
-                ((and file root (file-in-directory-p file root))
-                 (file-relative-name file root))
-                (file (abbreviate-file-name file))
-                (t (buffer-name))))
+         (key (list file (buffer-name) root)))
+    (if (equal key (car euler-mode-line--buffer-info-cache))
+        (cdr euler-mode-line--buffer-info-cache)
+      (let* ((inside-project (and file root (file-in-directory-p file root)))
+             (name (cond
+                    (inside-project
+                     (file-relative-name file root))
+                    (file
+                     (abbreviate-file-name file))
+                    (t
+                     (buffer-name))))
+             (project-name
+              (when (and project root (not inside-project))
+                (file-name-nondirectory (directory-file-name root))))
+             (info (list :name name
+                         :help (or file name)
+                         :project-name project-name)))
+        (setq euler-mode-line--buffer-info-cache (cons key info))
+        info))))
+
+(defun euler/mode-line-buffer-name (project)
+  "Return compact buffer name, relative to PROJECT when possible."
+  (let* ((info (euler/mode-line--buffer-info project))
+         (name (plist-get info :name))
          (limit (max 20 (/ (window-total-width) 2))))
     (propertize
      (euler/mode-line--truncate-left name limit)
      'face 'euler-mode-line-buffer
-     'help-echo (or file name))))
+     'help-echo (plist-get info :help))))
 
 (defun euler/mode-line-buffer-status ()
   "Return modified/read-only buffer flags."
@@ -146,14 +168,9 @@
 
 (defun euler/mode-line-project-name (project)
   "Return current project name."
-  (when project
-    (let ((root (project-root project)))
-      (when (and root
-                 (not (and buffer-file-name
-                           (file-in-directory-p buffer-file-name root))))
-        (propertize
-         (file-name-nondirectory (directory-file-name root))
-         'face 'euler-mode-line-muted)))))
+  (when-let ((name (plist-get (euler/mode-line--buffer-info project)
+                              :project-name)))
+    (propertize name 'face 'euler-mode-line-muted)))
 
 (defun euler/mode-line-vc-branch ()
   "Return compact VC branch name."
