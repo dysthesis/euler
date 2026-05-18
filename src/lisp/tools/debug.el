@@ -82,7 +82,9 @@ The default value assumes that `codelldb' is somewhere in Emacs' $PATH.")
 
 ;; For a more ergonomic Emacs and `dape' experience
 (use-package repeat
-  :custom
-  (repeat-mode +1))
+  :ensure nil
+  :defer 1
+  :config
+  (repeat-mode 1))
 
 (provide 'tools/debug)

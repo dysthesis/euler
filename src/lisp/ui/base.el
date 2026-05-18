@@ -2,6 +2,7 @@
 (load-theme 'noir t) ;; My own custom theme
 (use-package solaire-mode
   :ensure t
+  :defer 1
   :config (solaire-global-mode +1))
 
 (use-package indent-bars
@@ -83,7 +84,7 @@
 
 (use-package hl-todo
   :ensure t
-  :hook (prog-mode . global-hl-todo-mode)
+  :hook (prog-mode . hl-todo-mode)
   :config
   (setq hl-todo-highlight-punctuation ":"
 	;; Don't highlight todo keywords in text-mode derivatives unless in

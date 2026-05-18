@@ -3,7 +3,7 @@
 ;; Startup speed, annoyance suppression
 (defvar euler--initial-gc-threshold gc-cons-threshold
   "GC threshold before startup tuning.")
-(setq gc-cons-threshold 10000000)
+(setq gc-cons-threshold (* 64 1024 1024))
 (add-hook 'emacs-startup-hook
           (lambda ()
             (setq gc-cons-threshold euler--initial-gc-threshold)))
@@ -96,9 +96,11 @@
   (setq euler/package-quickstart-stamp (euler/package-quickstart--stamp-value)
         package-quickstart (euler/package-quickstart-valid-p)))
 
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (run-with-idle-timer 2 nil #'euler/package-quickstart-refresh-maybe)))
+(unless noninteractive
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (run-with-idle-timer 10 nil
+                                   #'euler/package-quickstart-refresh-maybe))))
 
 ;; Default frame configuration: full screen, good-looking title bar on macOS
 (setq frame-resize-pixelwise t)

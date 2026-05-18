@@ -52,6 +52,7 @@
 ;; Load direnv environments from .envrc
 (use-package envrc
   :ensure t
+  :defer 1
   :config
   (defun euler/envrc-preserve-tool-paths (buffer result)
     "Keep Euler-provided tools discoverable after envrc updates BUFFER."

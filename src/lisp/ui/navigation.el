@@ -29,9 +29,9 @@
 
 (use-package evil-textobj-tree-sitter
   :ensure t)
+
 (use-package avy
   :ensure t
-  :demand t
   :bind (("C-c j" . avy-goto-line)
          ("s-j"   . avy-goto-char-timer)))
 
@@ -60,14 +60,15 @@
   (setq consult-narrow-key "<"))
 
 (use-package embark-consult
-  :ensure t)
+  :ensure t
+  :after (embark consult)
+  :defer t)
 
 ;; Embark: supercharged context-dependent menu; kinda like a
 ;; super-charged right-click.
 (use-package embark
   :ensure t
-  :demand t
-  :after (avy embark-consult)
+  :commands (embark-act)
   :bind (("C-c a" . embark-act))        ; bind this to an easy key to hit
   :config
   ;; Add the option to run embark when using avy
@@ -82,7 +83,8 @@
     t)
 
   ;; After invoking avy-goto-char-timer, hit "." to run embark at the next
-  ;; candidate you select
-  (setf (alist-get ?. avy-dispatch-alist) 'euler/avy-action-embark))
+  ;; candidate you select.
+  (with-eval-after-load 'avy
+    (setf (alist-get ?. avy-dispatch-alist) 'euler/avy-action-embark)))
 
 (provide 'ui/navigation)

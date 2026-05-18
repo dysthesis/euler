@@ -234,6 +234,8 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
 
 (use-package treesit-fold
   :ensure t
+  :commands (treesit-fold-mode treesit-fold-toggle)
+  :hook (prog-mode . treesit-fold-mode)
   :config
   (setq treesit-fold-line-count-show t)  ; Show line count in folded regions
   (setq treesit-fold-line-count-format " ⋯ %d lines ⋯ ")
@@ -244,7 +246,6 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
             #'euler/treesit-fold-close-function-bodies-once)
   (add-hook 'xref-after-jump-hook #'euler/treesit-fold-open-at-point)
   (add-hook 'xref-after-return-hook #'euler/treesit-fold-open-at-point)
-  (global-treesit-fold-mode)
   ;; TODO: DWIM keybind to use <TAB> to toggle folding where applicable
   (dysthesis/start/leader-keys
     "c f" '(treesit-fold-toggle :wk "[C]ode [F]old")
