@@ -161,7 +161,19 @@ every mode."
     ".prettierrc.cjs"
     "prettier.config.cjs"
     ".prettierrc.toml")
-  "Prettier config filenames that should override Emacs indentation.")
+	  "Prettier config filenames that should override Emacs indentation.")
+
+(defcustom euler/format-prettier-config-cache-ttl 30
+  "Seconds to cache Prettier config discovery per directory."
+  :type 'number)
+
+(defvar euler/format--prettier-config-cache (make-hash-table :test 'equal)
+  "Cache for `euler/format--prettier-configured-p'.")
+
+(defun euler/format-clear-prettier-config-cache ()
+  "Clear cached Prettier config discovery."
+  (interactive)
+  (clrhash euler/format--prettier-config-cache))
 
 (defun euler/format--prettier-package-json-p ()
   "Return non-nil when nearest package.json has a prettier key."
@@ -178,10 +190,20 @@ every mode."
 
 (defun euler/format--prettier-configured-p ()
   "Return non-nil when current project has explicit Prettier config."
-  (or (euler/some (lambda (file)
-                    (locate-dominating-file default-directory file))
-                  euler/format--prettier-config-files)
-      (euler/format--prettier-package-json-p)))
+  (let* ((key (expand-file-name default-directory))
+         (cached (gethash key euler/format--prettier-config-cache))
+         (now (float-time)))
+    (if (and cached
+             (< (- now (car cached))
+                euler/format-prettier-config-cache-ttl))
+        (cdr cached)
+      (let ((value
+             (or (euler/some (lambda (file)
+                               (locate-dominating-file default-directory file))
+                             euler/format--prettier-config-files)
+                 (euler/format--prettier-package-json-p))))
+        (puthash key (cons now value) euler/format--prettier-config-cache)
+        value))))
 
 (defun euler/format--prettier-indent-args ()
   "Return Prettier indent args unless project config should decide."

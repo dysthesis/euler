@@ -37,8 +37,17 @@
 	orderless-matching-styles '(orderless-literal     ;; the component is treated as a literal string that must occur in the candidate
 				    orderless-prefixes    ;; the component is split at word endings and each piece must match at a word boundary in the candidate, occurring in that order
 				    orderless-regexp      ;; the component is treated as a regexp that must match somewhere in the candidate
-				    orderless-initialism  ;; each character of the component should appear as the beginning of a word in the candidate, in order 
-				    orderless-flex)))     ;; When all else fails, fuzzy-match.
+					    orderless-initialism  ;; each character of the component should appear as the beginning of a word in the candidate, in order
+					    orderless-flex)))     ;; When all else fails, fuzzy-match.
+
+(defcustom euler/completion-dabbrev-max-buffer-size (* 256 1024)
+  "Maximum buffer size where automatic dabbrev completion is enabled."
+  :type 'integer)
+
+(defun euler/cape-dabbrev-small-buffer ()
+  "Run `cape-dabbrev' only where automatic scans stay cheap."
+  (unless (> (buffer-size) euler/completion-dabbrev-max-buffer-size)
+    (cape-dabbrev)))
 
 ;; Corfu: Popup completion-at-point
 (use-package corfu
@@ -84,20 +93,36 @@
 (use-package cape
   :ensure t
   :init
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'euler/cape-dabbrev-small-buffer)
   (add-to-list 'completion-at-point-functions #'cape-file))
 
 ;; Pretty icons for corfu
 (use-package nerd-icons-corfu
   :ensure t
-  :after corfu
-  :init (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+  :defer t
+  :init
+  (defun euler/corfu-enable-nerd-icons ()
+    "Enable Corfu margin icons after startup."
+    (when (require 'nerd-icons-corfu nil t)
+      (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter)))
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (run-with-idle-timer 2 nil #'euler/corfu-enable-nerd-icons))))
 
 (use-package nerd-icons-completion
   :ensure t
-  :after marginalia
-  :config (nerd-icons-completion-mode)
-  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup))
+  :defer t
+  :init
+  (defun euler/completion-enable-nerd-icons ()
+    "Enable minibuffer completion icons after startup."
+    (when (require 'nerd-icons-completion nil t)
+      (nerd-icons-completion-mode)
+      (when (bound-and-true-p marginalia-mode)
+        (nerd-icons-completion-marginalia-setup))))
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (run-with-idle-timer 2 nil
+                                   #'euler/completion-enable-nerd-icons))))
 
 
 (provide 'ui/completion)

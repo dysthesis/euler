@@ -41,6 +41,18 @@
 (defvar user-cache-directory "~/.cache/emacs/"
   "Location where files created by emacs are placed.")
 
+(defcustom euler/treesit-font-lock-large-buffer-size (* 200 1024)
+  "Buffer size above which Tree-sitter font lock uses a cheaper level."
+  :type 'integer)
+
+(defun euler/treesit-adjust-font-lock-level ()
+  "Use richer Tree-sitter highlighting only where its cost stays bounded."
+  (when (boundp 'treesit-font-lock-level)
+    (setq-local treesit-font-lock-level
+                (if (> (buffer-size) euler/treesit-font-lock-large-buffer-size)
+                    2
+                  4))))
+
 (use-package emacs
   :hook
   ;; Auto parenthesis matching
@@ -67,8 +79,11 @@
 	  (json-mode . json-ts-mode)
 	  (css-mode . css-ts-mode)
 	  (python-mode . python-ts-mode)))
-  ;; Built-in *-ts-mode keeps bracket/delimiter/operator faces at level 4.
-  (setopt treesit-font-lock-level 4)
+  ;; Built-in *-ts-mode keeps bracket/delimiter/operator faces at level 4,
+  ;; but level 4 is costly in large buffers. Use level 3 until buffer-local
+  ;; sizing picks a level.
+  (setopt treesit-font-lock-level 3)
+  (add-hook 'prog-mode-hook #'euler/treesit-adjust-font-lock-level)
   ;; Mode line information
   (setopt column-number-mode t)                      ; Show column as well
   
