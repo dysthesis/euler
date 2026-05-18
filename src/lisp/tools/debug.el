@@ -5,20 +5,14 @@ The default value assumes that `codelldb' is somewhere in Emacs' $PATH.")
 
 (use-package dape
   :ensure t
+  :commands (dape
+             dape-breakpoint-toggle
+             dape-breakpoint-save
+             dape-breakpoint-load)
   :preface
   ;; By default dape shares the same keybinding prefix as `gud'
   ;; If you do not want to use any prefix, set it to nil.
   ;; (setq dape-key-prefix "\C-x\C-a")
-
-  :hook
-  ;; Save breakpoints on quit
-  (kill-emacs . dape-breakpoint-save)
-  ;; Load breakpoints on startup
-  (after-init . dape-breakpoint-load)
-
-  :custom
-  ;; Turn on global bindings for setting breakpoints with mouse
-  (dape-breakpoint-global-mode +1)
 
   ;; Info buffers to the right
   ;; (dape-buffer-window-arrangement 'right)
@@ -38,6 +32,10 @@ The default value assumes that `codelldb' is somewhere in Emacs' $PATH.")
 
   ;; Kill compile buffer on build success
   ;; (add-hook 'dape-compile-hook #'kill-buffer)
+  ;; Save breakpoints only after Dape has been loaded.
+  (add-hook 'kill-emacs-hook #'dape-breakpoint-save)
+  (dape-breakpoint-load)
+  (dape-breakpoint-global-mode +1)
   (add-to-list 'dape-configs
 	       ;; Debug Rust with `codelldb'
                `(codelldb-rust 

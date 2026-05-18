@@ -149,17 +149,26 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
         (display-local-help)))))
 
 (use-package eglot
+  :commands (eglot
+             eglot-ensure
+             eglot-rename
+             eglot-code-actions)
   :init
   (setq eglot-sync-connect 1
         eglot-autoshutdown t
+        eglot-send-changes-idle-time 0.1
+        eglot-extend-to-xref t
         eglot-stay-out-of
         (cons 'company
 	      (remq 'company
                     (ensure-list (and (boundp 'eglot-stay-out-of)
 				      eglot-stay-out-of)))))
-  :custom
-  (eglot-send-changes-idle-time 0.1)
-  (eglot-extend-to-xref t)
+  (dysthesis/start/leader-keys
+    "c" '(:ignore t :which-key "Code")
+    "c <escape>" '(keyboard-escape-quit :which-key t)
+    "c r" '(eglot-rename :which-key "Rename")
+    "c a" '(eglot-code-actions :which-key "Actions")
+    "c h" '(euler/eglot-lookup-documentation :which-key "Docs"))
   :config
   (when (boundp 'eglot-auto-display-help-buffer)
     (setq eglot-auto-display-help-buffer nil))
@@ -168,13 +177,6 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
   (when (boundp 'eglot-events-buffer-config)
     (setq eglot-events-buffer-config
           (plist-put eglot-events-buffer-config :size 0)))
-
-  (dysthesis/start/leader-keys
-    "c" '(:ignore t :which-key "Code")
-    "c <escape>" '(keyboard-escape-quit :which-key t)
-    "c r" '(eglot-rename :which-key "Rename")
-    "c a" '(eglot-code-actions :which-key "Actions")
-    "c h" '(euler/eglot-lookup-documentation :which-key "Docs"))
 
   (add-hook 'eglot-managed-mode-hook #'euler/lsp-sync-optimisation-mode)
   (advice-add 'eglot--managed-mode :around #'euler/lsp-defer-eglot-shutdown-a)
@@ -197,9 +199,9 @@ MODE and ALTERNATIVES follow `eglot-server-programs'."
   :after eglot
   :commands consult-eglot-symbols
   :init
-  (with-eval-after-load 'eglot
-    (define-key eglot-mode-map [remap xref-find-apropos] #'consult-eglot-symbols))
   (dysthesis/start/leader-keys
-    "c j" '(consult-eglot-symbols :which-key "Symbols")))
+    "c j" '(consult-eglot-symbols :which-key "Symbols"))
+  (with-eval-after-load 'eglot
+    (define-key eglot-mode-map [remap xref-find-apropos] #'consult-eglot-symbols)))
 
 (provide 'tools/lsp)

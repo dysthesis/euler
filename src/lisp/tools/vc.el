@@ -162,6 +162,7 @@ remain, kill all Magit buffers for the repository."
 
 (use-package transient
   :ensure t
+  :defer t
   :init
   (setq transient-levels-file
         (file-name-concat user-cache-directory "transient" "levels")
@@ -172,10 +173,12 @@ remain, kill all Magit buffers for the repository."
 
 (use-package magit
   :ensure t
-  :after (transient)
+  :commands (magit magit-status)
   :init
   ;; Euler already uses `global-auto-revert-mode'; do not duplicate reverts.
   (setq magit-auto-revert-mode nil)
+  (dysthesis/start/leader-keys
+    "g g" '(magit :wk "Ma[G]it"))
   :config
   (magit-auto-revert-mode -1)
   (setq transient-default-level 5
@@ -208,32 +211,35 @@ remain, kill all Magit buffers for the repository."
 
   (define-key magit-mode-map (kbd "q") #'euler/magit-quit)
   (define-key magit-mode-map (kbd "Q") #'euler/magit-quit-all)
-  (define-key transient-map [escape] #'transient-quit-one)
-
-  (dysthesis/start/leader-keys
-    "g g" '(magit :wk "Ma[G]it")))
+  (define-key transient-map [escape] #'transient-quit-one))
 
 ;; TODO: Add support in noir-theme
 ;; TODO: Custom commands like `tug' to pull along bookmarks to @-
 (use-package majutsu
   :ensure t
-  :after (transient)
-  :config (dysthesis/start/leader-keys
-	    "g j" '(majutsu :wk "Ma[J]utsu")))
+  :commands majutsu
+  :init
+  (dysthesis/start/leader-keys
+    "g j" '(majutsu :wk "Ma[J]utsu")))
 
 (use-package diff-hl
   :ensure t
-  :demand t
+  :defer t
   :preface
   (defvar diff-hl-side)
   (defvar text-scale-mode-amount)
   (defvar text-scale-mode-step)
-  :custom
-  (vc-git-diff-switches '("--histogram"))
-  (diff-hl-flydiff-delay 0.5)
-  (diff-hl-update-async nil) ; remove async polling; hook handles Magit
-  (diff-hl-show-staged-changes nil)
-  (diff-hl-draw-borders nil)
+  :init
+  (setq vc-git-diff-switches '("--histogram")
+        diff-hl-flydiff-delay 0.5
+        diff-hl-update-async nil ; remove async polling; hook handles Magit
+        diff-hl-show-staged-changes nil
+        diff-hl-draw-borders nil)
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (run-with-idle-timer 1 nil
+                                   (lambda ()
+                                     (require 'diff-hl)))))
   :hook (vc-dir-mode . turn-on-diff-hl-mode)
   :hook (diff-hl-mode . diff-hl-flydiff-mode)
   :config
