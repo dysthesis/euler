@@ -1,5 +1,6 @@
 ;;; -*- lexical-binding: t; -*-
 (require 'core/lib)
+(require 'project)
 (require 'ui/keys)
 
 (defgroup euler/lsp nil
@@ -12,6 +13,11 @@ If nil or 0, shut servers down immediately."
   :type '(choice (const :tag "Disabled" nil)
                  (const :tag "No delay" 0)
                  (number :tag "Delay seconds"))
+	  :group 'euler/lsp)
+
+(defcustom euler/lsp-ensure-idle-delay 0.2
+  "Seconds to wait before starting Eglot from mode hooks."
+  :type 'number
   :group 'euler/lsp)
 
 (defvar euler/lsp--default-read-process-output-max
@@ -29,6 +35,19 @@ If nil or 0, shut servers down immediately."
 
 (defvar euler/lsp-optimisation-mode-map (make-sparse-keymap)
   "Keymap for `euler/lsp-optimisation-mode'.")
+
+(defun euler/eglot-ensure-deferred ()
+  "Start Eglot shortly after file display, when inside a project."
+  (when (project-current nil)
+    (let ((buffer (current-buffer)))
+      (run-with-idle-timer
+       euler/lsp-ensure-idle-delay nil
+       (lambda (buffer)
+         (when (buffer-live-p buffer)
+           (with-current-buffer buffer
+             (unless (bound-and-true-p eglot--managed-mode)
+               (eglot-ensure)))))
+       buffer))))
 
 (define-minor-mode euler/lsp-optimisation-mode
   "Apply global GC and process I/O tuning while LSP servers are active."

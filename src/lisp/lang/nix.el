@@ -4,7 +4,7 @@
 (use-package nix-mode
   :ensure t
   :mode "\\.nix\\'"
-  :hook (nix-mode . eglot-ensure))
+  :hook (nix-mode . euler/eglot-ensure-deferred))
 
 (use-package nix-ts-mode
   :ensure t

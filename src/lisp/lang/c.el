@@ -121,14 +121,14 @@
   :mode ("\\.h\\'" . euler/cc-c-c++-mode)
   :hook
   ((c-mode-local-vars . euler/cc-init-ffap-integration)
-   (c-ts-mode-local-vars . euler/cc-init-ffap-integration)
-   (c++-mode-local-vars . euler/cc-init-ffap-integration)
-   (c++-ts-mode-local-vars . euler/cc-init-ffap-integration)
-   (c-mode-local-vars . eglot-ensure)
-   (c-ts-mode-local-vars . eglot-ensure)
-   (c++-mode-local-vars . eglot-ensure)
-   (c++-ts-mode-local-vars . eglot-ensure)
-   (c-mode-common . euler/cc-set-style))
+	   (c-ts-mode-local-vars . euler/cc-init-ffap-integration)
+	   (c++-mode-local-vars . euler/cc-init-ffap-integration)
+	   (c++-ts-mode-local-vars . euler/cc-init-ffap-integration)
+	   (c-mode-local-vars . euler/eglot-ensure-deferred)
+	   (c-ts-mode-local-vars . euler/eglot-ensure-deferred)
+	   (c++-mode-local-vars . euler/eglot-ensure-deferred)
+	   (c++-ts-mode-local-vars . euler/eglot-ensure-deferred)
+	   (c-mode-common . euler/cc-set-style))
   :init
   (with-eval-after-load 'ffap
     (add-to-list 'ffap-alist '(c-mode . ffap-c-mode))
@@ -188,8 +188,8 @@
   :mode (("CMakeLists\\.txt\\'" . cmake-mode)
          ("\\.cmake\\'" . cmake-mode))
   :hook
-  ((cmake-mode . eglot-ensure)
-   (cmake-ts-mode . eglot-ensure)))
+  ((cmake-mode . euler/eglot-ensure-deferred)
+   (cmake-ts-mode . euler/eglot-ensure-deferred)))
 
 ;; Sometimes you need to tell Eglot where to find the language server.
 (dolist (mode '(c-mode c-ts-mode c++-mode c++-ts-mode))
