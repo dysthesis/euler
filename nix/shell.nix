@@ -1,20 +1,26 @@
 {
-  perSystem = {pkgs, ...}: {
+  perSystem = {
+    config,
+    pkgs,
+    ...
+  }: {
     devShells.default = pkgs.mkShell {
       name = "euler-dev";
-      packages = with pkgs; [
+      packages = [
         # Nix tooling
-        nil # LSP
-        statix # static analyser
-        deadnix # dead code analyser
-        alejandra # formatter
+        pkgs.nil # LSP
+        pkgs.statix # static analyser
+        pkgs.deadnix # dead code analyser
+        pkgs.alejandra # formatter
 
-        npins # As a replacement for package-vc
+        pkgs.npins # As a replacement for package-vc
 
-        grim
-        slurp
-        swappy
-        defuddle-cli
+        pkgs.grim
+        pkgs.slurp
+        pkgs.swappy
+        pkgs.defuddle-cli
+
+        config.packages.ellsp
       ];
     };
   };

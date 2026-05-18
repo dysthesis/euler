@@ -22,6 +22,7 @@
 
     emacsWithPackages = mkEmacsWithPackages (_: []);
     emacsWithElsa = mkEmacsWithPackages (epkgs: [epkgs.elsa]);
+    ellsp = pkgs.callPackage ./ellsp.nix {inherit emacs;};
     elsafile = pkgs.writeText "Elsafile.el" ''
       ;; Elsa loads its default ruleset automatically; this file opts the project in.
       (register-extensions euler)
@@ -265,7 +266,7 @@
 
     packages = rec {
       # Emacs wrapped with whatever packages it needs
-      inherit emacsWithPackages emacsWithElsa cfg;
+      inherit emacsWithPackages emacsWithElsa ellsp cfg;
 
       # Emacs with packages and config
       euler = pkgs.callPackage ./euler.nix {inherit emacsWithPackages cfg lib;};
