@@ -21,11 +21,12 @@
     fd
     coreutils
     rsync
-    emacs-lsp-booster 
+    emacs-lsp-booster
     clang-tools
     cmake
     cmake-language-server
     perl
+    vscode-extensions.vadimcn.vscode-lldb.adapter
   ];
 in
   symlinkJoin {
@@ -37,9 +38,7 @@ in
         --add-flags "--init-directory=${cfg}" \
         --prefix EMACSNATIVELOADPATH : "${emacsWithPackages.deps}/share/emacs/native-lisp" \
         --prefix EMACSNATIVELOADPATH : "${cfg}/share/emacs/native-lisp" \
-        --prefix PATH ":" "${lib.makeBinPath deps}" \
-	--prefix PATH ":" "${vscode-extensions.vadimcn.vscode-lldb}/share/vscode/extensions/vadimcn.vscode-lldb/adapter"
-
+        --prefix PATH ":" "${lib.makeBinPath deps}"
     '';
     meta.mainProgram = "emacs";
   }
