@@ -93,6 +93,7 @@
 	hl-todo-keyword-faces
         '(;; For reminders to change or add something at a later date.
           ("TODO" warning bold)
+          ("WARN" warning bold)
           ;; For code (or code paths) that are broken, unimplemented, or slow,
           ;; and may become bigger problems later.
           ("FIXME" error bold)
