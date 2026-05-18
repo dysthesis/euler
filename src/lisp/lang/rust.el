@@ -3,7 +3,9 @@
 (require 'ui/keys)
 
 (euler/eglot-set-server
- '((rustic-mode :language-id "rust") rust-mode rust-ts-mode)
+ '((rustic-mode :language-id "rust")
+   rust-mode
+   rust-ts-mode)
  '("rust-analyzer"))
 
 (use-package rust-mode

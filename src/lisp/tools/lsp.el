@@ -125,15 +125,19 @@ If nil or 0, shut servers down immediately."
           (apply fn args))
       (fset 'eglot-shutdown shutdown))))
 
-(defun euler/eglot-set-server (mode &rest alternatives)
-  "Set ALTERNATIVES as the Eglot server for MODE.
-MODE and ALTERNATIVES follow `eglot-server-programs'."
+(defun euler/eglot-set-server (modes &rest alternatives)
+  "Set ALTERNATIVES as the Eglot server for MODES.
+MODES may be a single Eglot mode key or a list of mode keys.  ALTERNATIVES
+follow `eglot-server-programs'."
   (with-eval-after-load 'eglot
-    (add-to-list 'eglot-server-programs
-                 (cons mode
-		       (if (cdr alternatives)
-                           (eglot-alternatives alternatives)
-                         (car alternatives))))))
+    (let ((server (if (cdr alternatives)
+                      (eglot-alternatives alternatives)
+                    (car alternatives))))
+      (dolist (mode (if (and (listp modes)
+                             (not (keywordp (cadr modes))))
+                        modes
+                      (list modes)))
+        (add-to-list 'eglot-server-programs (cons mode server))))))
 
 (defvar euler/eglot--help-buffer nil
   "Reusable help buffer for Eglot hover documentation.")

@@ -196,4 +196,6 @@
   (euler/eglot-set-server
    mode `("clangd" ,(format "-j=%d" (max 1 (/ (num-processors) 2))))))
 
+(euler/eglot-set-server '(cmake-mode cmake-ts-mode) '("cmake-language-server"))
+
 (provide 'lang/c)

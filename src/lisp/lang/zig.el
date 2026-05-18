@@ -3,8 +3,6 @@
   :ensure t
   :defer t
   :config
-  (setq major-mode-remap-alist
-	'((yaml-mode . yaml-ts-mode)))
   ;; HACK: Rely on `major-mode-remap-defaults' instead (upstream also doesn't
   ;;   check if the grammars are ready before adding these entries, which will
   ;;   bork zig buffers).

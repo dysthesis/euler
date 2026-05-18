@@ -8,8 +8,9 @@
 
 (use-package nix-ts-mode
   :ensure t
-  :mode "\\.nix\\'")
+  :mode "\\.nix\\'"
+  :hook (nix-ts-mode . euler/eglot-ensure-deferred))
 
-(euler/eglot-set-server 'nix-mode '("nil"))
+(euler/eglot-set-server '(nix-mode nix-ts-mode) '("nil"))
 
 (provide 'lang/nix)
