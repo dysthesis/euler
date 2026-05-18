@@ -17,6 +17,46 @@
 ;; install or refresh archives.
 (setq package-archives nil)
 
+(defvar euler/package-quickstart-stamp nil
+  "Fingerprint for the package set used to build the quickstart file.")
+
+(defvar euler/package-quickstart-stamp-file nil
+  "File recording `euler/package-quickstart-stamp'.")
+
+(defun euler/package-quickstart--stamp-value ()
+  "Return a fingerprint for startup package and native-load paths."
+  (secure-hash
+   'sha1
+   (mapconcat
+    #'identity
+    (sort (copy-sequence
+           (append load-path
+                   (split-string (or (getenv "EMACSNATIVELOADPATH") "")
+                                 path-separator t)))
+          #'string<)
+    "\n")))
+
+(defun euler/package-quickstart-valid-p ()
+  "Return non-nil when the quickstart file matches the current package set."
+  (and package-quickstart-file
+       euler/package-quickstart-stamp-file
+       (file-readable-p package-quickstart-file)
+       (file-readable-p euler/package-quickstart-stamp-file)
+       (string= euler/package-quickstart-stamp
+                (with-temp-buffer
+                  (insert-file-contents euler/package-quickstart-stamp-file)
+                  (string-trim (buffer-string))))))
+
+(defun euler/package-quickstart-refresh-maybe ()
+  "Refresh package quickstart after startup if the package set changed."
+  (when (and (require 'package nil t)
+             (fboundp 'package-quickstart-refresh)
+             (not (euler/package-quickstart-valid-p)))
+    (make-directory (file-name-directory package-quickstart-file) t)
+    (package-quickstart-refresh)
+    (with-temp-file euler/package-quickstart-stamp-file
+      (insert euler/package-quickstart-stamp "\n"))))
+
 ;; Silence stupid startup message
 (setq inhibit-startup-echo-area-message (user-login-name))
 
@@ -28,7 +68,9 @@
         (expand-file-name "euler"
                           (or (getenv "XDG_STATE_HOME")
                               (expand-file-name "~/.local/state/"))))
-       (native-lisp-dir (expand-file-name "share/emacs/native-lisp" store-dir)))
+       (native-lisp-dir (expand-file-name "share/emacs/native-lisp" store-dir))
+       (quickstart-file (expand-file-name "package-quickstart.el"
+                                          (expand-file-name "emacs" state-root))))
   (add-to-list 'load-path lisp-dir)
   (add-to-list 'custom-theme-load-path
                (expand-file-name "themes" store-dir))
@@ -38,8 +80,8 @@
         user-emacs-directory  (file-name-as-directory
                                (expand-file-name "emacs" state-root))
         package-user-dir      (expand-file-name "elpa" user-emacs-directory)
-        package-quickstart    nil
-        package-quickstart-file (expand-file-name "package-quickstart.el" user-emacs-directory))
+        package-quickstart-file quickstart-file
+        euler/package-quickstart-stamp-file (concat quickstart-file ".stamp"))
   (when (boundp 'native-comp-eln-load-path)
     (let ((state-eln-cache (expand-file-name "eln-cache/" user-emacs-directory))
           (kept-native-paths nil))
@@ -50,7 +92,13 @@
           (push dir kept-native-paths)))
       (setq native-comp-eln-load-path
             (cons native-lisp-dir
-                  (cons state-eln-cache (nreverse kept-native-paths)))))))
+                  (cons state-eln-cache (nreverse kept-native-paths))))))
+  (setq euler/package-quickstart-stamp (euler/package-quickstart--stamp-value)
+        package-quickstart (euler/package-quickstart-valid-p)))
+
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (run-with-idle-timer 2 nil #'euler/package-quickstart-refresh-maybe)))
 
 ;; Default frame configuration: full screen, good-looking title bar on macOS
 (setq frame-resize-pixelwise t)
