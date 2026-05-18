@@ -19,6 +19,7 @@
   :hook (rustic-mode . eglot-ensure)
   :init
   (setq rustic-babel-format-src-block nil
+        rustic-load-optional-libraries nil
         rustic-format-trigger nil
         rustic-lsp-client 'eglot
         rustic-lsp-setup-p nil)
@@ -26,6 +27,7 @@
   (defun euler/rust-cargo-audit ()
     "Run cargo audit for the current Rust project."
     (interactive)
+    (require 'rustic-cargo)
     (rustic-run-cargo-command `(,(rustic-cargo-bin) "audit")
 			      (list :clippy-fix t
                                     :mode 'rustic-cargo-custom-command-mode)))
