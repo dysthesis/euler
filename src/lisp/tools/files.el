@@ -102,20 +102,23 @@
   (when (and (featurep 'dirvish)
              (fboundp 'dirvish-curr))
     (catch 'done
-      (dolist (window (window-list nil 'no-minibuf t))
-        (when (and (window-live-p window)
-                   (window-dedicated-p window))
-          (with-current-buffer (window-buffer window)
-            (when (dirvish-curr)
-	      (let ((dirvish-reuse-session nil))
-                (let ((selected-window (selected-window)))
-                  (unwind-protect
-		      (progn
-                        (select-window window)
-                        (dirvish-quit))
-                    (when (window-live-p selected-window)
-		      (select-window selected-window)))))
-	      (throw 'done t))))))))
+      (walk-windows
+       (lambda (window)
+         (when (and (window-live-p window)
+                    (window-dedicated-p window))
+           (with-current-buffer (window-buffer window)
+             (when (dirvish-curr)
+               (let ((dirvish-reuse-session nil)
+                     (selected-window (selected-window)))
+                 (unwind-protect
+                     (progn
+                       (select-window window)
+                       (dirvish-quit))
+                   (when (window-live-p selected-window)
+                     (select-window selected-window))))
+               (throw 'done t)))))
+       'no-minibuf
+       t))))
 
 (defun euler/dired-open-externally-command ()
   "Return a platform command for opening files outside Emacs."
