@@ -13,7 +13,8 @@
 ;; Vertico: better vertical completion for minibuffer commands
 (use-package vertico
   :ensure t
-  :init
+  :demand t
+  :config
   ;; You'll want to make sure that e.g. fido-mode isn't enabled
   (vertico-mode))
 
@@ -52,8 +53,7 @@
 ;; Corfu: Popup completion-at-point
 (use-package corfu
   :ensure t
-  :init
-  (global-corfu-mode)
+  :demand t
   :custom
   (corfu-auto t)
   (corfu-auto-prefix 1)          ;; I'm impatient; trigger completin faster.
@@ -68,7 +68,9 @@
   (:map corfu-map
         ("SPC" . corfu-insert-separator)
         ("C-n" . corfu-next)
-        ("C-p" . corfu-previous)))
+        ("C-p" . corfu-previous))
+  :config
+  (global-corfu-mode))
 
 ;; Part of corfu
 (use-package corfu-popupinfo
