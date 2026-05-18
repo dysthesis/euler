@@ -36,19 +36,19 @@ The default value assumes that `codelldb' is somewhere in Emacs' $PATH.")
   (add-hook 'kill-emacs-hook #'dape-breakpoint-save)
   (dape-breakpoint-load)
   (dape-breakpoint-global-mode +1)
+  ;; Debug Rust with `codelldb'
   (add-to-list 'dape-configs
-	       ;; Debug Rust with `codelldb'
-               `(codelldb-rust 
+	       `(codelldb-rust
                  modes (rust-mode rust-ts-mode)
 		 command-cwd dape-command-cwd
                  command euler/codelldb
-                 :type "lldb" 
-                 :request "launch" 
+                 :type "lldb"
+                 :request "launch"
                  command-args ("--port"
 			       :autoport
 			       "--settings" "{\"sourceLanguages\":[\"rust\"]}")
-                 ensure dape-ensure-command port :autoport fn dape-config-autoport 
-                 :cwd dape-cwd-fn 
+                 ensure dape-ensure-command port :autoport fn dape-config-autoport
+                 :cwd dape-cwd-fn
                  :program (lambda ()
                             (file-name-concat "target" "debug"
                                               (thread-first (dape-cwd)
@@ -56,29 +56,28 @@ The default value assumes that `codelldb' is somewhere in Emacs' $PATH.")
                                                             (file-name-split)
                                                             (last)
                                                             (car))))
-                 :args [])
-	       ;; Debug C with `codelldb'
-	       (add-to-list 'dape-configs
-			    '(my-codelldb-cc
-			      modes (c-mode c-ts-mode c++-mode c++-ts-mode)
-			      ensure dape-ensure-command
-			      command-cwd dape-command-cwd
-			      command euler/codelldb
-			      command-args ("--port" :autoport)
-			      port :autoport
-			      :type "lldb"
-			      :request "launch"
-			      :name "Codelldb: Launch current file"
-			      :cwd "."
-			      :program (lambda ()
-					 (let* ((source-file (buffer-file-name))
-						(dir (file-name-directory source-file))
-						(name (file-name-sans-extension
-						       (file-name-nondirectory source-file))))
-					   (concat dir name)))
-
-			      :args []
-			      :stopOnEntry nil))))
+                 :args []))
+  ;; Debug C with `codelldb'
+  (add-to-list 'dape-configs
+	       '(my-codelldb-cc
+		 modes (c-mode c-ts-mode c++-mode c++-ts-mode)
+		 ensure dape-ensure-command
+		 command-cwd dape-command-cwd
+		 command euler/codelldb
+		 command-args ("--port" :autoport)
+		 port :autoport
+		 :type "lldb"
+		 :request "launch"
+		 :name "Codelldb: Launch current file"
+		 :cwd "."
+		 :program (lambda ()
+			    (let* ((source-file (buffer-file-name))
+				   (dir (file-name-directory source-file))
+				   (name (file-name-sans-extension
+					  (file-name-nondirectory source-file))))
+			      (concat dir name)))
+                 :args []
+		 :stopOnEntry nil)))
 
 ;; For a more ergonomic Emacs and `dape' experience
 (use-package repeat
