@@ -121,6 +121,11 @@ Larger values are more thorough but slower in big files."
   :type 'integer
   :group 'euler/lsp)
 
+(defun euler/treesit-fold-mode-maybe ()
+  "Enable Tree-sitter folding when the current buffer is not large."
+  (unless (euler/large-buffer-p)
+    (treesit-fold-mode 1)))
+
 ;; (euler/treesit-fold--body-candidates :: (function () mixed))
 (defun euler/treesit-fold--body-candidates ()
   "Return body fold candidates near point in the current buffer.
@@ -235,7 +240,7 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
 (use-package treesit-fold
   :ensure t
   :commands (treesit-fold-mode treesit-fold-toggle)
-  :hook (prog-mode . treesit-fold-mode)
+  :hook (prog-mode . euler/treesit-fold-mode-maybe)
   :config
   (setq treesit-fold-line-count-show t)  ; Show line count in folded regions
   (setq treesit-fold-line-count-format " ⋯ %d lines ⋯ ")

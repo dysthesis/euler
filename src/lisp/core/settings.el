@@ -45,6 +45,19 @@
   "Buffer size above which Tree-sitter font lock uses a cheaper level."
   :type 'integer)
 
+(defcustom euler/visual-large-buffer-size (* 1024 1024)
+  "Buffer size above which expensive visual minor modes stay disabled."
+  :type 'integer)
+
+(defun euler/large-buffer-p (&optional size)
+  "Return non-nil when current buffer exceeds SIZE bytes."
+  (> (buffer-size) (or size euler/visual-large-buffer-size)))
+
+(defun euler/display-line-numbers-mode-maybe ()
+  "Enable line numbers when the current buffer is not large."
+  (unless (euler/large-buffer-p)
+    (display-line-numbers-mode 1)))
+
 (defun euler/treesit-adjust-font-lock-level ()
   "Use richer Tree-sitter highlighting only where its cost stays bounded."
   (when (boundp 'treesit-font-lock-level)
@@ -143,7 +156,7 @@
   (xterm-mouse-mode 1)
   
   ;; Display line numbers in programming mode
-  (add-hook 'prog-mode-hook 'display-line-numbers-mode)
+  (add-hook 'prog-mode-hook #'euler/display-line-numbers-mode-maybe)
   (setopt display-line-numbers-width 3)           ; Set a minimum width
   
   ;; Nice line wrapping when working with text

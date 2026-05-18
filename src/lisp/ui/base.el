@@ -8,8 +8,13 @@
 (use-package indent-bars
   :ensure t
   :unless noninteractive
-  :hook (prog-mode . indent-bars-mode)
+  :hook (prog-mode . euler/indent-bars-mode-maybe)
   :config
+  (defun euler/indent-bars-mode-maybe ()
+    "Enable indent guides when the current buffer is not large."
+    (unless (euler/large-buffer-p)
+      (indent-bars-mode 1)))
+
   (setq indent-bars-treesit-support t
 	indent-bars-treesit-wrap '((python argument_list parameters
 					   list list_comprehension
