@@ -5,10 +5,16 @@
 ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun euler/org-flyspell-mode-maybe ()
+  "Enable Flyspell in Org when an ispell-compatible program exists."
+  (when (executable-find (if (boundp 'ispell-program-name)
+                             ispell-program-name
+                           "ispell"))
+    (flyspell-mode 1)))
+
 (use-package org
   :hook ((org-mode . visual-line-mode)  ; wrap lines at word breaks
-         (org-mode . flyspell-mode)     ; spell checking!
-	 (org-mode . org-indent-mode))    
+         (org-mode . euler/org-flyspell-mode-maybe))
   :config
   (setq org-directory "~/Documents/Org"
 	org-agenda-files '("inbox.org" "tasks.org")))
