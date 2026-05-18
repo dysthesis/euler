@@ -43,6 +43,9 @@
 (declare-function dirvish-quit "dirvish")
 (declare-function wdired-exit "wdired")
 
+(defvar euler/dirvish-icons--enable-timer nil
+  "Idle timer used to enable Dirvish icons.")
+
 (defconst euler/dired-basic-listing-switches "-ahl"
   "Portable Dired listing switches.")
 
@@ -117,8 +120,20 @@
                    (when (window-live-p selected-window)
                      (select-window selected-window))))
                (throw 'done t)))))
-       'no-minibuf
-       t))))
+	       'no-minibuf
+	       t))))
+
+(defun euler/dirvish-enable-icons-later ()
+  "Enable Dirvish icons after the first directory buffer is displayed."
+  (unless (or (memq 'nerd-icons dirvish-attributes)
+              (timerp euler/dirvish-icons--enable-timer))
+    (setq euler/dirvish-icons--enable-timer
+          (run-with-idle-timer
+           1 nil
+           (lambda ()
+             (setq euler/dirvish-icons--enable-timer nil)
+             (when (require 'dirvish-icons nil t)
+               (add-to-list 'dirvish-attributes 'nerd-icons)))))))
 
 (defun euler/dired-open-externally-command ()
   "Return a platform command for opening files outside Emacs."
@@ -165,7 +180,7 @@
   (advice-add 'dirvish-pre-redisplay-h :around #'euler/dirvish-debounce-redisplay)
 
   (setq dirvish-reuse-session 'open
-        dirvish-attributes '(file-size nerd-icons subtree-state)
+        dirvish-attributes '(file-size subtree-state)
         dirvish-subtree-always-show-state t
         dirvish-mode-line-format
         '(:left (sort file-time symlink) :right (omit yank index))
@@ -173,6 +188,7 @@
         dirvish-use-mode-line t
         dirvish-hide-details '(dired dirvish dirvish-side)
         dirvish-hide-cursor '(dired dirvish dirvish-side))
+  (add-hook 'dirvish-mode-hook #'euler/dirvish-enable-icons-later)
 
   (general-define-key
    :keymaps 'dired-mode-map

@@ -25,6 +25,9 @@ May be an integer or a cons cell of left and right fringe widths."
 (defvar-local euler/magit--refreshed-buffer nil
   "Magit buffer point/window state saved before refresh.")
 
+(defvar euler/magit-todos--enable-timer nil
+  "Idle timer used to enable `magit-todos-mode'.")
+
 (defun euler/magit--opposite-direction (direction)
   "Return the opposite window direction for DIRECTION."
   (pcase direction
@@ -158,7 +161,18 @@ remain, kill all Magit buffers for the repository."
 		       (evil-emacs-state-p)))
              (bobp)
              (eolp))
-    (evil-insert-state)))
+	    (evil-insert-state)))
+
+(defun euler/magit-enable-todos-later ()
+  "Enable `magit-todos-mode' after Magit status has displayed."
+  (unless (timerp euler/magit-todos--enable-timer)
+    (setq euler/magit-todos--enable-timer
+          (run-with-idle-timer
+           1 nil
+           (lambda ()
+             (setq euler/magit-todos--enable-timer nil)
+             (when (require 'magit-todos nil t)
+               (magit-todos-mode 1)))))))
 
 (use-package transient
   :ensure t
@@ -315,8 +329,10 @@ remain, kill all Magit buffers for the repository."
 
 (use-package magit-todos
   :ensure t
-  :after magit
-  :config (magit-todos-mode 1))
+  :defer t
+  :init
+  (with-eval-after-load 'magit
+    (add-hook 'magit-status-mode-hook #'euler/magit-enable-todos-later)))
 
 (use-package git-commit
   :ensure t
