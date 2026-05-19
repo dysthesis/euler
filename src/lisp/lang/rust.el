@@ -45,7 +45,6 @@
   :hook (rustic-mode . euler/eglot-ensure-deferred)
   :init
   (setq rustic-babel-format-src-block nil
-        rustic-load-optional-libraries nil
         rustic-format-trigger nil
         rustic-lsp-client 'eglot
         rustic-lsp-setup-p nil)
