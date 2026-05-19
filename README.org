@@ -2,6 +2,9 @@
 
 This repository contains my configuration for Emacs, wrapped with Nix.
 
+Note that we assume a lot of the tools used, such as LSPs, are provided by the
+development environment, /e.g./ by a Nix devshell.
+
 * TODO Roadmap [10/16]
 As of right now, it's highly incomplete. Some things I'm still working on for this are described below.
 
