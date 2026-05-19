@@ -68,17 +68,23 @@
         (expand-file-name "euler"
                           (or (getenv "XDG_STATE_HOME")
                               (expand-file-name "~/.local/state/"))))
+       (cache-root
+        (expand-file-name "euler"
+                          (or (getenv "XDG_CACHE_HOME")
+                              (expand-file-name "~/.cache/"))))
        (native-lisp-dir (expand-file-name "share/emacs/native-lisp" store-dir))
        (quickstart-file (expand-file-name "package-quickstart.el"
-                                          (expand-file-name "emacs" state-root))))
+                                           (expand-file-name "emacs" state-root))))
   (add-to-list 'load-path lisp-dir)
   (add-to-list 'custom-theme-load-path
                (expand-file-name "themes" store-dir))
   ;; Keep config in the store; direct all writable state elsewhere.
   (setq user-init-file        (expand-file-name "init.el" store-dir)
         early-init-file       (expand-file-name "early-init.el" store-dir)
-        user-emacs-directory  (file-name-as-directory
-                               (expand-file-name "emacs" state-root))
+         user-emacs-directory  (file-name-as-directory
+                                (expand-file-name "emacs" state-root))
+        custom-file            (expand-file-name "custom.el" user-emacs-directory)
+        user-cache-directory   (file-name-as-directory cache-root)
         package-user-dir      (expand-file-name "elpa" user-emacs-directory)
         package-quickstart-file quickstart-file
         euler/package-quickstart-stamp-file (concat quickstart-file ".stamp"))

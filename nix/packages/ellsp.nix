@@ -11,7 +11,7 @@
     owner = "elisp-lsp";
     repo = "Ellsp";
     rev = "master";
-		hash = "sha256-oNJtw4/8P5YdD3xRj6r9kMdvVwsbhn6iVOMyJibA0v8=";
+    hash = "sha256-oNJtw4/8P5YdD3xRj6r9kMdvVwsbhn6iVOMyJibA0v8=";
   };
 
   epkgs = emacsPackagesFor emacs;
@@ -31,6 +31,13 @@
     pname = "ellsp";
     inherit version;
     inherit src;
+    postPatch = ''
+      substituteInPlace ellsp.el \
+        --replace-fail \
+          '("textDocument/completion"    (ellsp--handle-textDocument/completion id params))' \
+          '("textDocument/completion"    (ellsp--handle-textDocument/completion id params))
+            ("textDocument/documentSymbol" (lsp--make-response id []))'
+    '';
     packageRequires = with epkgs; [
       lsp-mode
       company

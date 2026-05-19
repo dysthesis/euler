@@ -40,7 +40,7 @@
          ;; Bitmaps are far slower on MacOS, inexplicably, but this needs more
          ;; testing to see if it's specific to ns or emacs-mac builds, or is
          ;; just a general MacOS issue.
-         (featurep :system 'macos)
+          (eq system-type 'darwin)
          ;; FIX: A bitmap init bug in emacs-pgtk (before v30) could cause
          ;; crashes (see jdtsmith/indent-bars#3).
          (and (featurep 'pgtk)

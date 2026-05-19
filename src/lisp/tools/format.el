@@ -12,7 +12,8 @@ If t, disable format-on-save in every mode.  If nil, enable it in
 every mode."
   :type '(choice (const :tag "Disable all" t)
                  (const :tag "Disable none" nil)
-                 (repeat :tag "Disabled modes" symbol)))
+                 (repeat :tag "Disabled modes" symbol))
+  :group 'euler)
 
 (defvaralias 'euler/format-with 'apheleia-formatter)
 (defvaralias 'euler/format-inhibit 'apheleia-inhibit)
@@ -165,7 +166,8 @@ every mode."
 
 (defcustom euler/format-prettier-config-cache-ttl 30
   "Seconds to cache Prettier config discovery per directory."
-  :type 'number)
+  :type 'number
+  :group 'euler)
 
 (defvar euler/format--prettier-config-cache (make-hash-table :test 'equal)
   "Cache for `euler/format--prettier-configured-p'.")

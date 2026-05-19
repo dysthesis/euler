@@ -22,6 +22,7 @@
 
     emacsWithPackages = mkEmacsWithPackages (_: []);
     emacsWithElsa = mkEmacsWithPackages (epkgs: [epkgs.elsa]);
+    euler = pkgs.callPackage ./euler.nix {inherit emacsWithPackages cfg lib;};
     ellsp = pkgs.callPackage ./ellsp.nix {inherit emacs;};
     elsafile = pkgs.writeText "Elsafile.el" ''
       ;; Elsa loads its default ruleset automatically; this file opts the project in.
@@ -269,15 +270,43 @@
       inherit emacsWithPackages emacsWithElsa ellsp cfg;
 
       # Emacs with packages and config
-      euler = pkgs.callPackage ./euler.nix {inherit emacsWithPackages cfg lib;};
+      inherit euler;
 
       # Emacs packages that I use that are not in emacs-overlay or nixpkgs.
-      inherit (emacsPackages.packages) eglot-booster ts-fold;
+      inherit (emacsPackages.packages) eglot-booster treesit-fold;
+      ts-fold = emacsPackages.packages.treesit-fold;
 
       default = euler;
     };
 
     checks = {
+      emacs-tests = pkgs.runCommand "euler-emacs-tests" {nativeBuildInputs = [emacsWithPackages];} ''
+        export HOME="$TMPDIR/home"
+        export XDG_CACHE_HOME="$TMPDIR/cache"
+        export XDG_CONFIG_HOME="$TMPDIR/config"
+        export XDG_STATE_HOME="$TMPDIR/state"
+        export EMACSNATIVELOADPATH="$TMPDIR/eln-cache"
+        export EULER_TEST_EMACS="${emacsWithPackages}/bin/emacs"
+        export EULER_TEST_WRAPPED_EMACS="${euler}/bin/emacs"
+        mkdir -p "$HOME" "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_STATE_HOME" "$EMACSNATIVELOADPATH"
+
+        cp -r ${../..} repo
+        chmod -R u+w repo
+        cd repo
+
+        mkdir -p $out
+        set +e
+        emacs --batch --no-init-file --no-splash \
+          -f package-activate-all \
+          -L tests \
+          --load tests/tests.el \
+          --funcall ert-run-tests-batch-and-exit \
+          2>&1 | tee $out/report.txt
+        status=''${PIPESTATUS[0]}
+        set -e
+        exit $status
+      '';
+
       elsa = pkgs.runCommand "euler-elsa-report" {nativeBuildInputs = [emacsWithElsa];} ''
         export HOME="$TMPDIR/home"
         export XDG_CACHE_HOME="$TMPDIR/cache"
@@ -291,7 +320,7 @@
         chmod -R u+w src
 
         mkdir -p $out
-        awk "!/^\\(require '(core|ui|tools|dev|lang|writing)\\//" \
+        awk "!/^\\(require '(core|ui|tools|dev|lang|prose)\\//" \
           src/early-init.el \
           src/lisp/core/lib.el \
           src/lisp/core/settings.el \
@@ -312,7 +341,7 @@
           src/lisp/dev/fold.el \
           src/lisp/lang/zig.el \
           src/lisp/tools/templates.el \
-          src/lisp/writing/org.el \
+          src/lisp/prose/org.el \
           src/themes/noir-theme.el \
           > euler-elsa.el
 

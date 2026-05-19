@@ -5,17 +5,20 @@
       use-package-ensure-function 'ignore)
 (defvar euler-inhibit-local-var-hooks nil
   "Non-nil disables Euler's MAJOR-MODE-local-vars-hook dispatcher.")
+(defvar-local euler--running-local-var-hooks nil
+  "Non-nil while Euler's local-var hook dispatcher is active.")
 
 (defun euler/run-local-var-hooks ()
   "Run MAJOR-MODE-local-vars-hook after file and directory locals are set."
   (unless (or euler-inhibit-local-var-hooks
+              euler--running-local-var-hooks
               delay-mode-hooks
               (minibufferp)
               (string-prefix-p
                " " (buffer-name (or (buffer-base-buffer)
-                                    (current-buffer)))))
-    (setq-local euler-inhibit-local-var-hooks t)
-    (let ((hook-var (intern (format "%s-local-vars-hook" major-mode))))
+                                     (current-buffer)))))
+    (let ((hook-var (intern (format "%s-local-vars-hook" major-mode)))
+          (euler--running-local-var-hooks t))
       (unless (boundp hook-var)
         (set hook-var nil))
       (unless (get hook-var 'variable-documentation)
@@ -43,11 +46,13 @@
 
 (defcustom euler/treesit-font-lock-large-buffer-size (* 200 1024)
   "Buffer size above which Tree-sitter font lock uses a cheaper level."
-  :type 'integer)
+  :type 'integer
+  :group 'euler)
 
 (defcustom euler/visual-large-buffer-size (* 1024 1024)
   "Buffer size above which expensive visual minor modes stay disabled."
-  :type 'integer)
+  :type 'integer
+  :group 'euler)
 
 (defun euler/large-buffer-p (&optional size)
   "Return non-nil when current buffer exceeds SIZE bytes."

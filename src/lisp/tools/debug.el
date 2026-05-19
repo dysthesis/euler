@@ -23,6 +23,10 @@ The default value assumes that `codelldb' is somewhere in Emacs' $PATH.")
   ;; Projectile users
   ;; (dape-cwd-function #'projectile-project-root)
 
+  :init
+  (setq dape-default-breakpoints-file
+        (locate-user-emacs-file "dape-breakpoints"))
+
   :config
   ;; Pulse source line (performance hit)
   ;; (add-hook 'dape-display-source-hook #'pulse-momentary-highlight-one-line)

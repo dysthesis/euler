@@ -142,6 +142,16 @@
     ('gnu/linux "xdg-open")
     ('windows-nt "start")))
 
+(defun euler/general-define-existing-keys (args bindings)
+  "Define BINDINGS with General only when their commands are available.
+ARGS is passed to `general-define-key' before each key/command pair."
+  (dolist (binding bindings)
+    (let ((key (car binding))
+          (command (cdr binding)))
+      (when (fboundp command)
+        (apply #'general-define-key
+               (append args (list key command)))))))
+
 (use-package dired
   :ensure nil
   :commands dired-jump
@@ -176,6 +186,14 @@
     (advice-add 'dired--find-file :override #'dirvish--find-entry)
     (advice-add 'dired-noselect :around #'dirvish-dired-noselect-a))
   :config
+  (dolist (feature '(dirvish-emerge
+                     dirvish-history
+                     dirvish-narrow
+                     dirvish-quick-access
+                     dirvish-rsync
+                     dirvish-subtree
+                     dirvish-yank))
+    (require feature nil t))
   (dirvish-override-dired-mode)
   (advice-add 'dirvish-pre-redisplay-h :around #'euler/dirvish-debounce-redisplay)
 
@@ -190,72 +208,65 @@
         dirvish-hide-cursor '(dired dirvish dirvish-side))
   (add-hook 'dirvish-mode-hook #'euler/dirvish-enable-icons-later)
 
-  (general-define-key
-   :keymaps 'dired-mode-map
-   "C-c C-r" #'dirvish-rsync)
+  (euler/general-define-existing-keys
+   '(:keymaps dired-mode-map)
+   '(("C-c C-r" . dirvish-rsync)))
 
-  (general-define-key
-   :states 'normal
-   :keymaps 'dirvish-mode-map
-   "?" #'dirvish-dispatch
-   "q" #'dirvish-quit
-   "b" #'dirvish-quick-access
-   "f" #'dirvish-file-info-menu
-   "p" #'dirvish-yank
-   "S" #'dirvish-quicksort
-   "F" #'dirvish-layout-toggle
-   "z" #'dirvish-history-jump
-   "gh" #'dirvish-subtree-up
-   "gl" #'dirvish-subtree-toggle
-   "h" #'dired-up-directory
-   "l" #'dired-find-file
-   "TAB" #'dirvish-subtree-toggle
-   "M-b" #'dirvish-history-go-backward
-   "M-f" #'dirvish-history-go-forward
-   "M-n" #'dirvish-narrow
-   "M-m" #'dirvish-mark-menu
-   "M-s" #'dirvish-setup-menu
-   "M-e" #'dirvish-emerge-menu)
+  (euler/general-define-existing-keys
+   '(:states normal :keymaps dirvish-mode-map)
+   '(("?" . dirvish-dispatch)
+     ("q" . dirvish-quit)
+     ("b" . dirvish-quick-access)
+     ("f" . dirvish-file-info-menu)
+     ("p" . dirvish-yank)
+     ("S" . dirvish-quicksort)
+     ("F" . dirvish-layout-toggle)
+     ("z" . dirvish-history-jump)
+     ("gh" . dirvish-subtree-up)
+     ("gl" . dirvish-subtree-toggle)
+     ("h" . dired-up-directory)
+     ("l" . dired-find-file)
+     ("TAB" . dirvish-subtree-toggle)
+     ("M-b" . dirvish-history-go-backward)
+     ("M-f" . dirvish-history-go-forward)
+     ("M-n" . dirvish-narrow)
+     ("M-m" . dirvish-mark-menu)
+     ("M-s" . dirvish-setup-menu)
+     ("M-e" . dirvish-emerge-menu)))
 
-  (general-define-key
-   :states 'motion
-   :keymaps 'dirvish-mode-map
-   "<left>" #'dired-up-directory
-   "<right>" #'dired-find-file
-   "[h" #'dirvish-history-go-backward
-   "]h" #'dirvish-history-go-forward
-   "[e" #'dirvish-emerge-next-group
-   "]e" #'dirvish-emerge-previous-group)
+  (euler/general-define-existing-keys
+   '(:states motion :keymaps dirvish-mode-map)
+   '(("<left>" . dired-up-directory)
+     ("<right>" . dired-find-file)
+     ("[h" . dirvish-history-go-backward)
+     ("]h" . dirvish-history-go-forward)
+     ("[e" . dirvish-emerge-next-group)
+     ("]e" . dirvish-emerge-previous-group)))
 
-  (general-define-key
-   :states '(normal motion)
-   :keymaps 'dirvish-mode-map
-   "<left>" #'dired-up-directory
-   "<right>" #'dired-find-file
-   "M-b" #'dirvish-history-go-backward
-   "M-f" #'dirvish-history-go-forward
-   "M-n" #'dirvish-narrow
-   "M-m" #'dirvish-mark-menu
-   "M-s" #'dirvish-setup-menu
-   "M-e" #'dirvish-emerge-menu)
+  (euler/general-define-existing-keys
+   '(:states (normal motion) :keymaps dirvish-mode-map)
+   '(("<left>" . dired-up-directory)
+     ("<right>" . dired-find-file)
+     ("M-b" . dirvish-history-go-backward)
+     ("M-f" . dirvish-history-go-forward)
+     ("M-n" . dirvish-narrow)
+     ("M-m" . dirvish-mark-menu)
+     ("M-s" . dirvish-setup-menu)
+     ("M-e" . dirvish-emerge-menu)))
 
-  (general-define-key
-   :states 'normal
-   :keymaps 'dirvish-mode-map
-   :prefix "y"
-   "l" #'dirvish-copy-file-true-path
-   "n" #'dirvish-copy-file-name
-   "p" #'dirvish-copy-file-path
-   "r" #'dirvish-copy-remote-path
-   "y" #'dired-do-copy)
+  (euler/general-define-existing-keys
+   '(:states normal :keymaps dirvish-mode-map :prefix "y")
+   '(("l" . dirvish-copy-file-true-path)
+     ("n" . dirvish-copy-file-name)
+     ("p" . dirvish-copy-file-path)
+     ("r" . dirvish-copy-remote-path)
+     ("y" . dired-do-copy)))
 
-  (general-define-key
-   :states 'normal
-   :keymaps 'dirvish-mode-map
-   :prefix "s"
-   "s" #'dirvish-symlink
-   "S" #'dirvish-relative-symlink
-   "h" #'dirvish-hardlink)
+  (euler/general-define-existing-keys
+   '(:states normal :keymaps dirvish-mode-map :prefix "s")
+   '(("s" . dirvish-symlink)
+     ("S" . dirvish-relative-symlink)
+     ("h" . dirvish-hardlink)))
 
   (advice-add 'project-switch-project :before #'euler/dirvish-cleanup))
 

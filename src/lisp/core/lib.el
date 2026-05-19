@@ -1,4 +1,8 @@
 ;;; -*- lexical-binding: t; -*-
+(defgroup euler nil
+  "Euler Emacs configuration."
+  :group 'convenience)
+
 (defun euler/find-if (predicate sequence)
   "Return the first item in SEQUENCE for which PREDICATE is non-nil."
   (catch 'found

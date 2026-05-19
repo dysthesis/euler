@@ -21,10 +21,10 @@ If nil or 0, shut servers down immediately."
   :group 'euler/lsp)
 
 (defvar euler/lsp--default-read-process-output-max
-  (default-value 'read-process-output-max)
+  nil
   "Saved `read-process-output-max' before LSP optimisation.")
 
-(defvar euler/lsp--default-gc-cons-threshold gc-cons-threshold
+(defvar euler/lsp--default-gc-cons-threshold nil
   "Saved `gc-cons-threshold' before LSP optimisation.")
 
 (defvar euler/lsp--optimisation-init-p nil
@@ -35,6 +35,14 @@ If nil or 0, shut servers down immediately."
 
 (defvar euler/lsp-optimisation-mode-map (make-sparse-keymap)
   "Keymap for `euler/lsp-optimisation-mode'.")
+
+(defun euler/lsp--ensure-optimisation-baseline ()
+  "Capture process and GC defaults before LSP tuning mutates them."
+  (unless euler/lsp--optimisation-init-p
+    (setq euler/lsp--default-read-process-output-max
+          (default-value 'read-process-output-max)
+          euler/lsp--default-gc-cons-threshold gc-cons-threshold
+          euler/lsp--optimisation-init-p t)))
 
 (defun euler/eglot-ensure-deferred ()
   "Start Eglot shortly after file display, when inside a project."
@@ -56,6 +64,7 @@ If nil or 0, shut servers down immediately."
   :init-value nil
   (if euler/lsp-optimisation-mode
       (progn
+        (euler/lsp--ensure-optimisation-baseline)
         (setq-default read-process-output-max (* 4 1024 1024))
         (unless (fboundp 'igc-info)
           (setq gc-cons-threshold (* 64 1024 1024))))
@@ -214,7 +223,7 @@ follow `eglot-server-programs'."
   :init
   (setq eglot-booster-io-only
         (and (> emacs-major-version 29)
-             (not (functionp 'json-rpc-connection))))
+             (not (functionp 'jsonrpc-connection))))
   :config (eglot-booster-mode))
 
 (use-package consult-eglot

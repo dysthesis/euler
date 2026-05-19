@@ -20,21 +20,37 @@
   :ensure t
   :defer t)
 
-(defvar euler-tool-bin-directories
+(defcustom euler-tool-programs
+  '("emacs-lsp-booster"
+    "ls"
+    "gls"
+    "rsync"
+    "clangd"
+    "clang-format"
+    "cmake"
+    "cmake-language-server"
+    "rust-analyzer"
+    "nil"
+    "alejandra"
+    "zls"
+    "prettier"
+    "shfmt"
+    "codelldb")
+  "External tools whose startup directories should survive local env updates."
+  :type '(repeat string)
+  :group 'euler)
+
+(defun euler/tool-bin-directories (&optional programs)
+  "Return executable directories for PROGRAMS without duplicates."
   (delete-dups
    (delq nil
          (mapcar (lambda (program)
                    (let ((path (executable-find program)))
                      (when path
 		       (directory-file-name (file-name-directory path)))))
-                 '("emacs-lsp-booster"
-                   "ls"
-                   "gls"
-                   "rsync"
-                   "clangd"
-                   "clang-format"
-                   "cmake"
-                   "cmake-language-server"))))
+                 (or programs euler-tool-programs)))))
+
+(defvar euler-tool-bin-directories (euler/tool-bin-directories)
   "Tool directories from Euler's startup PATH to preserve in local envs.")
 
 (defun euler/prepend-to-local-path (directories)

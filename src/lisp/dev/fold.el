@@ -127,8 +127,9 @@ Larger values are more thorough but slower in big files."
     (treesit-fold-mode 1)))
 
 ;; (euler/treesit-fold--body-candidates :: (function () mixed))
-(defun euler/treesit-fold--body-candidates ()
+(defun euler/treesit-fold--body-candidates (&optional whole-buffer)
   "Return body fold candidates near point in the current buffer.
+When WHOLE-BUFFER is non-nil, search the entire buffer.
 Each candidate is (TARGET-RANGE . FOLD-RANGE)."
   (let* ((rule (euler/treesit-fold--body-rule))
          (query-text (and rule (plist-get rule :query))))
@@ -139,12 +140,16 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
                          (euler/treesit-fold--body-query language query-text)))
              ;; Restrict capture to a window around point instead of
              ;; the full buffer, so large files don't pay full-tree cost.
-             (beg (save-excursion
-                    (forward-line (- euler/treesit-fold-context-lines))
-                    (point)))
-             (end (save-excursion
-                    (forward-line euler/treesit-fold-context-lines)
-                    (point))))
+              (beg (if whole-buffer
+                       (point-min)
+                     (save-excursion
+                       (forward-line (- euler/treesit-fold-context-lines))
+                       (point))))
+              (end (if whole-buffer
+                       (point-max)
+                     (save-excursion
+                       (forward-line euler/treesit-fold-context-lines)
+                       (point)))))
         (when query
           (condition-case nil
               (let (candidates)
@@ -190,12 +195,13 @@ Each candidate is (TARGET-RANGE . FOLD-RANGE)."
     deleted))
 
 ;; (euler/treesit-fold-close-function-bodies :: (function () mixed))
-(defun euler/treesit-fold-close-function-bodies ()
-  "Fold all function and method bodies in the current buffer."
-  (interactive)
+(defun euler/treesit-fold-close-function-bodies (&optional whole-buffer)
+  "Fold nearby function and method bodies.
+With prefix argument WHOLE-BUFFER, fold the entire buffer."
+  (interactive "P")
   (when (bound-and-true-p treesit-fold-mode)
     (let (folded)
-      (dolist (candidate (euler/treesit-fold--body-candidates))
+      (dolist (candidate (euler/treesit-fold--body-candidates whole-buffer))
         (let ((range (cdr candidate)))
           (unless (euler/treesit-fold--overlay-at-range-p range)
             (when (treesit-fold--create-overlay range)

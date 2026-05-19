@@ -43,7 +43,8 @@
 
 (defcustom euler/completion-dabbrev-max-buffer-size (* 256 1024)
   "Maximum buffer size where automatic dabbrev completion is enabled."
-  :type 'integer)
+  :type 'integer
+  :group 'euler)
 
 (defun euler/cape-dabbrev-small-buffer ()
   "Run `cape-dabbrev' only where automatic scans stay cheap."
