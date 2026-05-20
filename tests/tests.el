@@ -130,6 +130,134 @@
             (should (equal captured-path "fresh-path"))))
       (setenv "PATH" old-path))))
 
+(defun euler-test--rust-artifact (name kind src executable)
+  "Return a Cargo compiler artifact fixture."
+  (list :reason "compiler-artifact"
+        :executable executable
+        :target (list :name name
+                      :kind (list kind)
+                      :src_path src)))
+
+(ert-deftest euler-test-rust-dape-selects-current-test-artifact ()
+  "Rust Dape test config should choose the Cargo test binary near point."
+  (let* ((root (make-temp-file "euler-test-rust-" t))
+         (tests-dir (expand-file-name "tests" root))
+         (src-dir (expand-file-name "src" root))
+         (test-file (expand-file-name "api.rs" tests-dir))
+         (lib-file (expand-file-name "lib.rs" src-dir))
+         (test-artifact (euler-test--rust-artifact
+                         "api" "test" test-file
+                         (expand-file-name "target/debug/deps/api-hash" root)))
+         (lib-artifact (euler-test--rust-artifact
+                        "demo" "lib" lib-file
+                        (expand-file-name "target/debug/deps/demo-hash" root))))
+    (make-directory tests-dir t)
+    (make-directory src-dir t)
+    (write-region "#[test]\nfn api_test() {}\n" nil test-file nil 'silent)
+    (write-region "pub fn demo() {}\n" nil lib-file nil 'silent)
+    (let ((buffer (find-file-noselect test-file)))
+      (unwind-protect
+          (with-current-buffer buffer
+            (should (eq (euler/dape-rust--select-artifact
+                         (list lib-artifact test-artifact) root nil nil)
+                        test-artifact)))
+        (when (buffer-live-p buffer)
+          (kill-buffer buffer))))))
+
+(ert-deftest euler-test-rust-dape-prefers-bin-for-src-module ()
+  "Rust Dape test config should prefer a bin artifact for binary-only src modules."
+  (let* ((root (make-temp-file "euler-test-rust-" t))
+         (src-dir (expand-file-name "src" root))
+         (tests-dir (expand-file-name "tests" root))
+         (module-file (expand-file-name "logic.rs" src-dir))
+         (main-file (expand-file-name "main.rs" src-dir))
+         (test-file (expand-file-name "api.rs" tests-dir))
+         (bin-artifact (euler-test--rust-artifact
+                        "demo" "bin" main-file
+                        (expand-file-name "target/debug/deps/demo-hash" root)))
+         (test-artifact (euler-test--rust-artifact
+                         "api" "test" test-file
+                         (expand-file-name "target/debug/deps/api-hash" root))))
+    (make-directory src-dir t)
+    (make-directory tests-dir t)
+    (write-region "mod logic;\nfn main() {}\n" nil main-file nil 'silent)
+    (write-region "#[test]\nfn unit_test() {}\n" nil module-file nil 'silent)
+    (write-region "#[test]\nfn api_test() {}\n" nil test-file nil 'silent)
+    (let ((buffer (find-file-noselect module-file)))
+      (unwind-protect
+          (with-current-buffer buffer
+            (should (eq (euler/dape-rust--select-artifact
+                         (list test-artifact bin-artifact) root nil nil)
+                        bin-artifact)))
+        (when (buffer-live-p buffer)
+          (kill-buffer buffer))))))
+
+(ert-deftest euler-test-rust-dape-resolves-symbol-cargo-args ()
+  "Rust Dape test config should resolve cargo-args before Dape value evaluation."
+  (should (equal (euler/dape-rust--cargo-args
+                  '(cargo-args euler/dape-rust-test-cargo-args))
+                 euler/dape-rust-test-cargo-args)))
+
+(ert-deftest euler-test-rust-dape-resolves-symbol-command ()
+  "Rust Dape test config should resolve command before Dape process creation."
+  (let ((euler/codelldb "/tmp/codelldb"))
+    (should (equal (euler/dape-rust--command '(command euler/codelldb))
+                   "/tmp/codelldb"))))
+
+(ert-deftest euler-test-rust-dape-finds-exact-test-name ()
+  "Rust Dape test config should build exact test path from file and module context."
+  (let* ((root (make-temp-file "euler-test-rust-" t))
+         (src-dir (expand-file-name "src" root))
+         (file (expand-file-name "runtime.rs" src-dir))
+         (artifact (euler-test--rust-artifact
+                    "demo" "lib" (expand-file-name "lib.rs" src-dir)
+                    (expand-file-name "target/debug/deps/demo-hash" root))))
+    (make-directory src-dir t)
+    (with-temp-buffer
+      (setq buffer-file-name file)
+      (insert "mod tests {\n#[test]\nfn with_threads_rejects_zero_workers() {\nlet _ = 1;\n}\n}\n")
+      (goto-char (point-min))
+      (search-forward "let _")
+      (should (equal (euler/dape-rust-current-test-name root artifact)
+                     "runtime::tests::with_threads_rejects_zero_workers")))))
+
+(ert-deftest euler-test-rust-dape-config-uses-exact-test-args ()
+  "Rust Dape test config should pass exact test args instead of running all tests."
+  (let* ((root (make-temp-file "euler-test-rust-" t))
+         (src-dir (expand-file-name "src" root))
+         (file (expand-file-name "runtime.rs" src-dir))
+         (artifact (euler-test--rust-artifact
+                    "demo" "lib" (expand-file-name "lib.rs" src-dir)
+                    (expand-file-name "target/debug/deps/demo-hash" root))))
+    (make-directory src-dir t)
+    (write-region "[package]\nname = \"demo\"\nversion = \"0.1.0\"\nedition = \"2021\"\n"
+                  nil (expand-file-name "Cargo.toml" root) nil 'silent)
+    (with-temp-buffer
+      (setq buffer-file-name file
+            default-directory src-dir)
+      (insert "mod tests {\n#[test]\nfn with_threads_rejects_zero_workers() {\nlet _ = 1;\n}\n}\n")
+      (goto-char (point-min))
+      (search-forward "let _")
+      (cl-letf (((symbol-function 'euler/dape-rust--cargo-test-artifacts)
+                 (lambda (_root _cargo-args) (list artifact)))
+                ((symbol-function 'euler/dape-rust--listed-test-names)
+                 (lambda (_program _root)
+                   '("runtime::tests::with_threads_rejects_zero_workers"))))
+        (let ((config (euler/dape-rust-test-config
+                       '(command "codelldb" cargo-args ("test" "--no-run" "--message-format=json")))))
+          (should (equal (plist-get config :args)
+                         ["runtime::tests::with_threads_rejects_zero_workers"
+                          "--exact"
+                          "--nocapture"]))
+          (should (equal (plist-get config :breakpointMode) "file")))))))
+
+(ert-deftest euler-test-rust-dape-uses-listed-test-name ()
+  "Rust Dape test config should use the exact harness-listed test name."
+  (should (equal (euler/dape-rust--resolve-listed-test-name
+                  "store::tests::put_after_stop_returns_error"
+                  '("tests::put_after_stop_returns_error"))
+                 "tests::put_after_stop_returns_error")))
+
 (defun euler-test--wide-string (trial)
   "Return a deterministic string containing mixed-width characters for TRIAL."
   (let ((alphabet (append (number-sequence ?a ?z)

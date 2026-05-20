@@ -64,6 +64,7 @@
     "m b r" '(rustic-cargo-run :wk "Cargo run")
     "m t" '(:ignore t :wk "Cargo test")
     "m t a" '(rustic-cargo-test :wk "All")
+    "m t d" '(euler/dape-rust-test :wk "Debug current test")
     "m t t" '(rustic-cargo-current-test :wk "Current test"))
   :config
   (with-eval-after-load 'org-src
