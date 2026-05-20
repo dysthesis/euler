@@ -89,14 +89,32 @@
    `(success              ((t (:foreground ,green))))
    `(match                ((t (:foreground ,bg :background ,gray8))))
    `(completions-annotations ((t (:foreground ,gray6))))
-   `(completions-common-part ((t (:foreground ,luster :weight bold))))
-   `(completions-first-difference ((t (:foreground ,lack :weight bold))))
-   `(completions-group-title ((t (:foreground ,gray6 :weight bold))))
-   `(completions-group-separator ((t (:foreground ,gray3 :strike-through ,gray3))))
+    `(completions-common-part ((t (:foreground ,luster :weight bold))))
+    `(completions-first-difference ((t (:foreground ,lack :weight bold))))
+    `(completions-group-title ((t (:foreground ,gray6 :weight bold))))
+    `(completions-group-separator ((t (:foreground ,gray3 :strike-through ,gray3))))
 
-   ;; ---- Header line / tooltip placeholders (fleshed out later) ----
-   `(header-line          ((t (:foreground ,gray7 :background ,bg-statusln :box nil))))
-   `(tooltip              ((t (:foreground ,gray8 :background ,bg-popup))))
+    ;; ---- ANSI / jj labels ----
+    `(ansi-color-black                 ((t (:foreground ,gray4))))
+    `(ansi-color-red                   ((t (:foreground ,red))))
+    `(ansi-color-green                 ((t (:foreground ,green))))
+    `(ansi-color-yellow                ((t (:foreground ,yellow))))
+    `(ansi-color-blue                  ((t (:foreground ,blue))))
+    `(ansi-color-magenta               ((t (:foreground ,orange))))
+    `(ansi-color-cyan                  ((t (:foreground ,lack))))
+    `(ansi-color-white                 ((t (:foreground ,luster))))
+    `(ansi-color-bright-black          ((t (:foreground ,gray6))))
+    `(ansi-color-bright-red            ((t (:foreground ,red :weight bold))))
+    `(ansi-color-bright-green          ((t (:foreground ,green :weight bold))))
+    `(ansi-color-bright-yellow         ((t (:foreground ,yellow :weight bold))))
+    `(ansi-color-bright-blue           ((t (:foreground ,blue :weight bold))))
+    `(ansi-color-bright-magenta        ((t (:foreground ,orange :weight bold))))
+    `(ansi-color-bright-cyan           ((t (:foreground ,lack :weight bold))))
+    `(ansi-color-bright-white          ((t (:foreground ,luster :weight bold))))
+
+    ;; ---- Header line / tooltip placeholders (fleshed out later) ----
+    `(header-line          ((t (:foreground ,gray7 :background ,bg-statusln :box nil))))
+    `(tooltip              ((t (:foreground ,gray8 :background ,bg-popup))))
 
    ;; ---- Font-lock: Tonsky-applied ----
    ;; Don't highlight keywords / calls / usages.
@@ -436,13 +454,38 @@
    `(magit-signature-expired           ((t (:foreground ,orange))))
    `(magit-signature-expired-key       ((t (:foreground ,orange :slant italic))))
    `(magit-signature-revoked           ((t (:foreground ,red))))
-   `(magit-signature-error             ((t (:foreground ,red))))
-   `(magit-popup-disabled-argument     ((t (:foreground ,gray4))))
-   `(magit-popup-option-value          ((t (:foreground ,gray7))))
+    `(magit-signature-error             ((t (:foreground ,red))))
+    `(magit-popup-disabled-argument     ((t (:foreground ,gray4))))
+    `(magit-popup-option-value          ((t (:foreground ,gray7))))
 
-   ;; ---- Transient (Magit popups) ----
-   `(transient-heading                 ((t (:foreground ,luster :weight bold))))
-   `(transient-key                     ((t (:foreground ,lack :weight bold))))
+    ;; ---- Majutsu ----
+    `(majutsu-log-revision-face         ((t (:foreground ,gray7))))
+    `(majutsu-log-change-id-face        ((t (:foreground ,blue))))
+    `(majutsu-log-commit-id-face        ((t (:foreground ,gray5))))
+    `(majutsu-log-bookmark-face         ((t (:foreground ,lack))))
+    `(majutsu-log-tag-face              ((t (:foreground ,yellow))))
+    `(majutsu-hash                      ((t (:inherit magit-hash))))
+    `(majutsu-diffstat-binary           ((t (:foreground ,lack :weight bold))))
+    `(majutsu-diff-color-words-focus    ((t (:background ,gray2 :extend t))))
+    `(majutsu-interactive-selected-hunk ((t (:background ,gray2 :box (:line-width -1 :color ,green) :extend t))))
+    `(majutsu-interactive-selected-region ((t (:background ,gray2 :box (:line-width -1 :color ,lack) :extend t))))
+    `(majutsu-annotate-highlight        ((t (:foreground ,luster :background ,gray2 :extend t))))
+    `(majutsu-annotate-heading          ((t (:inherit majutsu-annotate-highlight :foreground ,gray7 :weight normal :slant normal :extend t))))
+    `(majutsu-annotate-hash             ((t (:foreground ,gray5))))
+    `(majutsu-annotate-name             ((t (:foreground ,lack))))
+    `(majutsu-annotate-date             ((t (:foreground ,gray6))))
+    `(majutsu-annotate-summary          ((t (:foreground ,gray7))))
+    `(majutsu-conflict-marker-face      ((t (:foreground ,orange :background ,gray2 :extend t))))
+    `(majutsu-conflict-base-face        ((t (:inherit smerge-base))))
+    `(majutsu-conflict-context-face     ((t (:foreground ,gray7 :background ,gray1 :extend t))))
+    `(majutsu-conflict-added-face       ((t (:foreground ,green :background ,gray1 :extend t))))
+    `(majutsu-conflict-removed-face     ((t (:foreground ,orange :background ,gray1 :extend t))))
+    `(majutsu-conflict-refined-added    ((t (:inherit diff-refine-added))))
+    `(majutsu-conflict-refined-removed  ((t (:inherit diff-refine-removed))))
+
+    ;; ---- Transient (Magit popups) ----
+    `(transient-heading                 ((t (:foreground ,luster :weight bold))))
+    `(transient-key                     ((t (:foreground ,lack :weight bold))))
    `(transient-key-stay                ((t (:foreground ,green :weight bold))))
    `(transient-key-noop                ((t (:foreground ,gray4))))
    `(transient-key-return              ((t (:foreground ,yellow :weight bold))))
@@ -855,6 +898,7 @@
   ;; expose palette symbols for use elsewhere
   (custom-theme-set-variables
    'noir
+   `(ansi-color-names-vector [,bg ,red ,green ,yellow ,blue ,orange ,lack ,luster])
    '(frame-background-mode 'dark)))
 
 ;;;###autoload

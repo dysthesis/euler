@@ -2,6 +2,12 @@
 (require 'core/lib)
 (require 'ui/keys)
 
+(declare-function magit "magit" (&optional directory))
+(declare-function majutsu-log "majutsu" (&optional directory))
+
+(defvar majutsu-diff-refine-hunk)
+(defvar majutsu-display-buffer-function)
+
 (defgroup euler/magit nil
   "Euler Magit integration."
   :group 'tools)
@@ -27,6 +33,13 @@ May be an integer or a cons cell of left and right fringe widths."
 
 (defvar euler/magit-todos--enable-timer nil
   "Idle timer used to enable `magit-todos-mode'.")
+
+(defun euler/vc-dwim ()
+  "Open Majutsu in JJ repositories, otherwise Magit."
+  (interactive)
+  (if (locate-dominating-file default-directory ".jj")
+      (call-interactively #'majutsu-log)
+    (call-interactively #'magit)))
 
 (defun euler/magit--opposite-direction (direction)
   "Return the opposite window direction for DIRECTION."
@@ -193,6 +206,7 @@ remain, kill all Magit buffers for the repository."
   ;; Euler already uses `global-auto-revert-mode'; do not duplicate reverts.
   (setq magit-auto-revert-mode nil)
   (dysthesis/start/leader-keys
+    "g" '(:ignore t :wk "VC")
     "g g" '(magit :wk "Ma[G]it"))
   :config
   (magit-auto-revert-mode -1)
@@ -228,14 +242,17 @@ remain, kill all Magit buffers for the repository."
   (define-key magit-mode-map (kbd "Q") #'euler/magit-quit-all)
   (define-key transient-map [escape] #'transient-quit-one))
 
-;; TODO: Add support in noir-theme
 ;; TODO: Custom commands like `tug' to pull along bookmarks to @-
 (use-package majutsu
   :ensure t
-  :commands majutsu
+  :commands (majutsu majutsu-log majutsu-dispatch)
   :init
+  (setq majutsu-display-buffer-function #'majutsu-display-buffer-fullcolumn-most-v1
+        majutsu-diff-refine-hunk t)
   (dysthesis/start/leader-keys
-    "g j" '(majutsu :wk "Ma[J]utsu")))
+    "g j" '(majutsu-log :wk "Ma[J]utsu")
+    "g J" '(majutsu-dispatch :wk "Majutsu dispatch")
+    "g v" '(euler/vc-dwim :wk "VC DWIM")))
 
 (use-package diff-hl
   :ensure t

@@ -9,9 +9,6 @@
   coreutils,
   rsync,
   emacs-lsp-booster,
-  clang-tools,
-  cmake,
-  cmake-language-server,
   perl,
   vscode-extensions,
   ...
@@ -22,9 +19,6 @@
     coreutils
     rsync
     emacs-lsp-booster
-    clang-tools
-    cmake
-    cmake-language-server
     perl
     vscode-extensions.vadimcn.vscode-lldb.adapter
   ];

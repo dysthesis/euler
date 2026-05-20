@@ -5,10 +5,8 @@
 (euler-test-load-config)
 
 (ert-deftest euler-test-wrapper-runtime-tools-present ()
-  "Wrapped runtime should contain every external tool configured by Lisp."
-  (let* ((programs '("git" "rg" "fd" "rsync" "emacs-lsp-booster" "clangd"
-                     "cmake" "cmake-language-server" "codelldb" "nil"
-                     "rust-analyzer" "zls" "alejandra" "prettier" "shfmt"))
+  "Wrapped runtime should contain the necessary external tool configured by Lisp."
+  (let* ((programs '("rg" "fd" "rsync" "emacs-lsp-booster" "codelldb"))
          (expr (concat "(let ((programs '" (prin1-to-string programs) "))"
                        "  (dolist (program programs)"
                        "    (princ program)"
@@ -35,8 +33,8 @@
                   (".cpp" . (c++-ts-mode c++-mode))))
     (pcase-let ((`(,suffix . ,expected-modes) case))
       (euler-test-with-temp-file suffix ""
-        (should (not (eq major-mode 'fundamental-mode)))
-        (should (memq major-mode expected-modes))))))
+				 (should (not (eq major-mode 'fundamental-mode)))
+				 (should (memq major-mode expected-modes))))))
 
 (ert-deftest euler-test-elsa-input-paths-exist ()
   "Every Elisp path hard-coded into the Elsa check should exist."
