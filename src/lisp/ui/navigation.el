@@ -7,7 +7,14 @@
   (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
   (setq evil-want-keybinding nil)
   :config
-  (evil-mode 1))
+  (evil-mode 1)
+  (general-define-key
+   :states '(normal visual motion)
+   :keymaps 'override
+   "C-h" #'evil-window-left
+   "C-j" #'evil-window-down
+   "C-k" #'evil-window-up
+   "C-l" #'evil-window-right))
 
 (defvar evil-collection-magit-use-z-for-folds)
 (defvar evil-collection-magit-section-use-z-for-folds)
