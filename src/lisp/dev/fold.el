@@ -15,6 +15,7 @@
 (declare-function treesit-query-compile "treesit" (language query &optional eager))
 
 (defvar treesit-fold-mode)
+(defvar treesit-fold-mode-map)
 (defvar treesit-fold-on-fold-hook)
 (defvar treesit-fold-range-alist)
 
@@ -218,6 +219,37 @@ With prefix argument WHOLE-BUFFER, fold the entire buffer."
     (setq-local euler/treesit-fold-bodies-initialized t)
     (euler/treesit-fold-close-function-bodies)))
 
+;; (euler/treesit-fold--candidate-on-line-p :: (function (mixed int) bool))
+(defun euler/treesit-fold--candidate-on-line-p (candidate line)
+  "Return non-nil when CANDIDATE can be toggled from LINE."
+  (let ((target (car candidate))
+        (range (cdr candidate)))
+    (or (= line (line-number-at-pos (car target) t))
+        (= line (line-number-at-pos (car range) t)))))
+
+;; (euler/treesit-fold--candidate-on-current-line :: (function () mixed))
+(defun euler/treesit-fold--candidate-on-current-line ()
+  "Return fold candidate whose header or fold start is on the current line."
+  (let ((line (line-number-at-pos (point) t)))
+    (euler/find-if
+     (lambda (candidate)
+       (euler/treesit-fold--candidate-on-line-p candidate line))
+     (euler/treesit-fold--body-candidates))))
+
+;; (euler/treesit-fold-toggle-dwim :: (function () mixed))
+(defun euler/treesit-fold-toggle-dwim ()
+  "Toggle a fold on the current line, otherwise run normal TAB behavior."
+  (interactive)
+  (let ((candidate (and (bound-and-true-p treesit-fold-mode)
+                        (euler/treesit-fold--candidate-on-current-line))))
+    (if candidate
+        (let ((range (cdr candidate)))
+          (if (euler/treesit-fold--delete-overlays-at-range range)
+              (run-hooks 'treesit-fold-on-fold-hook)
+            (when (treesit-fold--create-overlay range)
+	      (run-hooks 'treesit-fold-on-fold-hook))))
+      (call-interactively #'indent-for-tab-command))))
+
 ;; (euler/treesit-fold--candidate-at-point-p :: (function (mixed int) bool))
 (defun euler/treesit-fold--candidate-at-point-p (candidate point)
   "Return non-nil when CANDIDATE is a good fold to open for POINT."
@@ -257,7 +289,8 @@ With prefix argument WHOLE-BUFFER, fold the entire buffer."
             #'euler/treesit-fold-close-function-bodies-once)
   (add-hook 'xref-after-jump-hook #'euler/treesit-fold-open-at-point)
   (add-hook 'xref-after-return-hook #'euler/treesit-fold-open-at-point)
-  ;; TODO: DWIM keybind to use <TAB> to toggle folding where applicable
+  (define-key treesit-fold-mode-map (kbd "<tab>")
+              #'euler/treesit-fold-toggle-dwim)
   (dysthesis/start/leader-keys
     "c f" '(treesit-fold-toggle :wk "[C]ode [F]old")
     "c F" '(euler/treesit-fold-close-function-bodies :wk "[C]ode [F]old bodies")))
