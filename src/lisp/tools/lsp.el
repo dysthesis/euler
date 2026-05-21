@@ -186,9 +186,9 @@ follow `eglot-server-programs'."
              eglot-rename
              eglot-code-actions)
   :init
-  (setq eglot-sync-connect 1
+  (setq eglot-sync-connect nil
         eglot-autoshutdown t
-        eglot-send-changes-idle-time 0.1
+        eglot-send-changes-idle-time 0.25
         eglot-extend-to-xref t
         eglot-stay-out-of
         (cons 'company
