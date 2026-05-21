@@ -22,6 +22,7 @@
 (use-package evil-collection
   :after evil
   :ensure t
+  :defer 1
   :init
   (setq evil-collection-magit-use-z-for-folds t
         evil-collection-magit-section-use-z-for-folds t)
@@ -31,11 +32,14 @@
 ;; Quickly add parentheses around a selection by using `S-<paren>'
 (use-package evil-surround
   :ensure t
+  :after evil
+  :defer 1
   :config
   (global-evil-surround-mode 1))
 
 (use-package evil-textobj-tree-sitter
-  :ensure t)
+  :ensure t
+  :defer t)
 
 (use-package avy
   :ensure t

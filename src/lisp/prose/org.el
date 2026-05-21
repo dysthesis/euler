@@ -52,15 +52,18 @@
   (with-eval-after-load 'org (global-org-modern-mode))) 
 
 ;; centre text for writing
+(defun dysthesis/org-mode-setup ()
+  "Enable prose-focused display tweaks for Org buffers."
+  (org-indent-mode)
+  (when (require 'olivetti nil t)
+    (olivetti-mode)
+    (olivetti-set-width 90))
+  (display-line-numbers-mode 0))
+
 (use-package olivetti
   :ensure t
-  :config
-  (defun dysthesis/org-mode-setup ()
-    "Enable prose-focused display tweaks for Org buffers."
-    (org-indent-mode)
-    (olivetti-mode)
-    (display-line-numbers-mode 0)
-    (olivetti-set-width 90))
-  (add-hook 'org-mode-hook 'dysthesis/org-mode-setup))
+  :commands (olivetti-mode olivetti-set-width))
+
+(add-hook 'org-mode-hook #'dysthesis/org-mode-setup)
 
 (provide 'prose/org)

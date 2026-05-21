@@ -232,7 +232,7 @@ every mode."
 
 (use-package apheleia ;; stuff
   :ensure t
-  :demand t
+  :defer 1
   :init
   (add-hook 'apheleia-inhibit-functions #'euler/format-maybe-inhibit)
   (with-eval-after-load 'eglot
