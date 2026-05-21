@@ -13,6 +13,7 @@
 (declare-function treesit-node-end "treesit" (node))
 (declare-function treesit-query-capture "treesit" (node query &optional beg end node-only))
 (declare-function treesit-query-compile "treesit" (language query &optional eager))
+(declare-function euler/expensive-visual-buffer-p "core/settings" (&optional size))
 
 (defvar treesit-fold-mode)
 (defvar treesit-fold-mode-map)
@@ -21,6 +22,9 @@
 
 (defvar-local euler/treesit-fold-bodies-initialized nil
   "Non-nil means this buffer already got its initial body folds.")
+
+(defvar-local euler/treesit-fold--initial-timer nil
+  "Idle timer used for initial `treesit-fold' body folding.")
 
 (defvar euler/treesit-fold--body-query-cache (make-hash-table :test 'equal)
   "Compiled Tree-sitter queries for folding function bodies.")
@@ -116,15 +120,26 @@ Rules added later win because lookup uses the first matching rule."
     ('body (or (treesit-node-parent node) node))
     ('fold node)))
 
-(defcustom euler/treesit-fold-context-lines 200
+(defcustom euler/treesit-fold-context-lines 120
   "Lines above and below point to search for foldable bodies.
 Larger values are more thorough but slower in big files."
   :type 'integer
   :group 'euler/lsp)
 
+(defcustom euler/treesit-fold-initial-idle-delay 0.35
+  "Idle seconds to wait before initial function body folding."
+  :type 'number
+  :group 'euler/lsp)
+
+(defun euler/treesit-fold-expensive-buffer-p ()
+  "Return non-nil when folding should avoid automatic visual work."
+  (if (fboundp 'euler/expensive-visual-buffer-p)
+      (euler/expensive-visual-buffer-p)
+    (> (buffer-size) (* 1024 1024))))
+
 (defun euler/treesit-fold-mode-maybe ()
-  "Enable Tree-sitter folding when the current buffer is not large."
-  (unless (euler/large-buffer-p)
+  "Enable Tree-sitter folding when visual cost stays bounded."
+  (unless (euler/treesit-fold-expensive-buffer-p)
     (treesit-fold-mode 1)))
 
 ;; (euler/treesit-fold--body-candidates :: (function () mixed))
@@ -211,13 +226,36 @@ With prefix argument WHOLE-BUFFER, fold the entire buffer."
         (run-hooks 'treesit-fold-on-fold-hook))
       folded)))
 
+;; (euler/treesit-fold--close-function-bodies-once-now :: (function (buffer) mixed))
+(defun euler/treesit-fold--close-function-bodies-once-now (buffer)
+  "Fold function bodies once in BUFFER after idle time."
+  (when (buffer-live-p buffer)
+    (with-current-buffer buffer
+      (setq-local euler/treesit-fold--initial-timer nil)
+      (when (and (bound-and-true-p treesit-fold-mode)
+                 (not euler/treesit-fold-bodies-initialized))
+        (let (success)
+          (unwind-protect
+              (progn
+                (euler/treesit-fold-close-function-bodies)
+                (setq success t))
+            (when success
+              (setq-local euler/treesit-fold-bodies-initialized t))))))))
+
 ;; (euler/treesit-fold-close-function-bodies-once :: (function () mixed))
 (defun euler/treesit-fold-close-function-bodies-once ()
   "Fold function bodies once when `treesit-fold-mode' first starts."
-  (when (and treesit-fold-mode
-             (not euler/treesit-fold-bodies-initialized))
-    (setq-local euler/treesit-fold-bodies-initialized t)
-    (euler/treesit-fold-close-function-bodies)))
+  (when (and (bound-and-true-p treesit-fold-mode)
+             (not euler/treesit-fold-bodies-initialized)
+             (not (timerp euler/treesit-fold--initial-timer)))
+    (if (and (numberp euler/treesit-fold-initial-idle-delay)
+             (> euler/treesit-fold-initial-idle-delay 0))
+        (setq-local euler/treesit-fold--initial-timer
+                    (run-with-idle-timer
+                     euler/treesit-fold-initial-idle-delay nil
+                     #'euler/treesit-fold--close-function-bodies-once-now
+                     (current-buffer)))
+      (euler/treesit-fold--close-function-bodies-once-now (current-buffer)))))
 
 ;; (euler/treesit-fold--candidate-on-line-p :: (function (mixed int) bool))
 (defun euler/treesit-fold--candidate-on-line-p (candidate line)
@@ -235,6 +273,16 @@ With prefix argument WHOLE-BUFFER, fold the entire buffer."
      (lambda (candidate)
        (euler/treesit-fold--candidate-on-line-p candidate line))
      (euler/treesit-fold--body-candidates))))
+
+;; (euler/treesit-fold--fallback-tab :: (function () mixed))
+(defun euler/treesit-fold--fallback-tab ()
+  "Run the command TAB would use without `treesit-fold-mode'."
+  (let* ((treesit-fold-mode nil)
+         (command (key-binding (this-command-keys-vector))))
+    (if (and (commandp command)
+             (not (eq command #'euler/treesit-fold-toggle-dwim)))
+        (call-interactively command)
+      (call-interactively #'indent-for-tab-command))))
 
 ;; (euler/treesit-fold-toggle-dwim :: (function () mixed))
 (defun euler/treesit-fold-toggle-dwim ()
@@ -274,16 +322,6 @@ With prefix argument WHOLE-BUFFER, fold the entire buffer."
           (when range
             (when (euler/treesit-fold--delete-overlays-at-range range)
 	      (run-hooks 'treesit-fold-on-fold-hook))))))))
-;; (euler/treesit-fold--fallback-tab :: (function () mixed))
-(defun euler/treesit-fold--fallback-tab ()
-  "Run the command TAB would use without `treesit-fold-mode'."
-  (let* ((treesit-fold-mode nil)
-         (command (key-binding (this-command-keys-vector))))
-    (if (and (commandp command)
-             (not (eq command #'euler/treesit-fold-toggle-dwim)))
-        (call-interactively command)
-      (call-interactively #'indent-for-tab-command))))
-
 
 (use-package treesit-fold
   :ensure t
