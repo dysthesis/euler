@@ -1,6 +1,9 @@
 ;;; -*- lexical-binding: t; -*-
+(declare-function euler/expensive-visual-buffer-p "core/settings" (&optional size))
+
 (use-package which-key
   :ensure t
+  :defer 1
   :config
   (which-key-mode))
 
@@ -27,6 +30,7 @@
 ;; Marginalia: annotations for minibuffer
 (use-package marginalia
   :ensure t
+  :defer 1
   :config
   (marginalia-mode))
 
@@ -46,10 +50,23 @@
   :type 'integer
   :group 'euler)
 
+(defun euler/completion-expensive-buffer-p (&optional size)
+  "Return non-nil when automatic completion work should be reduced."
+  (or (file-remote-p default-directory)
+      (if (fboundp 'euler/expensive-visual-buffer-p)
+          (euler/expensive-visual-buffer-p size)
+        (> (buffer-size) (or size (* 1024 1024))))))
+
 (defun euler/cape-dabbrev-small-buffer ()
   "Run `cape-dabbrev' only where automatic scans stay cheap."
-  (unless (> (buffer-size) euler/completion-dabbrev-max-buffer-size)
+  (unless (euler/completion-expensive-buffer-p
+           euler/completion-dabbrev-max-buffer-size)
     (cape-dabbrev)))
+
+(defun euler/corfu-adjust-for-buffer ()
+  "Reduce automatic Corfu work in buffers where typing latency matters more."
+  (when (euler/completion-expensive-buffer-p)
+    (setq-local corfu-auto nil)))
 
 ;; Corfu: Popup completion-at-point
 (use-package corfu
@@ -57,7 +74,8 @@
   :demand t
   :custom
   (corfu-auto t)
-  (corfu-auto-prefix 1)          ;; I'm impatient; trigger completin faster.
+  (corfu-auto-delay 0.08)
+  (corfu-auto-prefix 2)          ;; Keep auto completion without first-char churn.
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
   (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
@@ -70,6 +88,7 @@
         ("SPC" . corfu-insert-separator)
         ("C-n" . corfu-next)
         ("C-p" . corfu-previous))
+  :hook (corfu-mode . euler/corfu-adjust-for-buffer)
   :config
   (global-corfu-mode))
 
@@ -80,9 +99,7 @@
   :hook (corfu-mode . corfu-popupinfo-mode)
   :custom
   (corfu-popupinfo-delay '(0.25 . 0.1))
-  (corfu-popupinfo-hide nil)
-  :config
-  (corfu-popupinfo-mode))
+  (corfu-popupinfo-hide nil))
 
 ;; Make corfu popup come up in terminal overlay
 (use-package corfu-terminal
