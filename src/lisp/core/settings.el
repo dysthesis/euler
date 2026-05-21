@@ -187,7 +187,7 @@
   ;; Some systems don't do file notifications well; see
   ;; https://todo.sr.ht/~ashton314/emacs-euler/11
   (setopt auto-revert-interval 5)
-  (setopt auto-revert-check-vc-info t)
+  (setopt auto-revert-check-vc-info nil)
   ;; auto-revert file-backed buffers (excludes magit, dired, etc.)
   (setopt global-auto-revert-non-file-buffers nil)
   (global-auto-revert-mode)
