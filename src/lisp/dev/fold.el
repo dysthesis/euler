@@ -248,7 +248,7 @@ With prefix argument WHOLE-BUFFER, fold the entire buffer."
               (run-hooks 'treesit-fold-on-fold-hook)
             (when (treesit-fold--create-overlay range)
 	      (run-hooks 'treesit-fold-on-fold-hook))))
-      (call-interactively #'indent-for-tab-command))))
+      (euler/treesit-fold--fallback-tab))))
 
 ;; (euler/treesit-fold--candidate-at-point-p :: (function (mixed int) bool))
 (defun euler/treesit-fold--candidate-at-point-p (candidate point)
@@ -274,6 +274,16 @@ With prefix argument WHOLE-BUFFER, fold the entire buffer."
           (when range
             (when (euler/treesit-fold--delete-overlays-at-range range)
 	      (run-hooks 'treesit-fold-on-fold-hook))))))))
+;; (euler/treesit-fold--fallback-tab :: (function () mixed))
+(defun euler/treesit-fold--fallback-tab ()
+  "Run the command TAB would use without `treesit-fold-mode'."
+  (let* ((treesit-fold-mode nil)
+         (command (key-binding (this-command-keys-vector))))
+    (if (and (commandp command)
+             (not (eq command #'euler/treesit-fold-toggle-dwim)))
+        (call-interactively command)
+      (call-interactively #'indent-for-tab-command))))
+
 
 (use-package treesit-fold
   :ensure t
@@ -289,8 +299,15 @@ With prefix argument WHOLE-BUFFER, fold the entire buffer."
             #'euler/treesit-fold-close-function-bodies-once)
   (add-hook 'xref-after-jump-hook #'euler/treesit-fold-open-at-point)
   (add-hook 'xref-after-return-hook #'euler/treesit-fold-open-at-point)
-  (define-key treesit-fold-mode-map (kbd "<tab>")
-              #'euler/treesit-fold-toggle-dwim)
+  (dolist (key '("<tab>" "TAB"))
+    (define-key treesit-fold-mode-map (kbd key)
+                #'euler/treesit-fold-toggle-dwim))
+  (with-eval-after-load 'evil
+    (general-define-key
+     :states '(normal visual motion)
+     :keymaps 'treesit-fold-mode-map
+     "<tab>" #'euler/treesit-fold-toggle-dwim
+     "TAB" #'euler/treesit-fold-toggle-dwim))
   (dysthesis/start/leader-keys
     "c f" '(treesit-fold-toggle :wk "[C]ode [F]old")
     "c F" '(euler/treesit-fold-close-function-bodies :wk "[C]ode [F]old bodies")))
