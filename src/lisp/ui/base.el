@@ -5,16 +5,17 @@
   :defer 1
   :config (solaire-global-mode +1))
 
+(defun euler/indent-bars-mode-maybe ()
+  "Enable indent guides when redisplay cost stays bounded."
+  (unless (euler/expensive-visual-buffer-p)
+    (indent-bars-mode 1)))
+
 (use-package indent-bars
   :ensure t
   :unless noninteractive
+  :commands indent-bars-mode
   :hook (prog-mode . euler/indent-bars-mode-maybe)
   :config
-  (defun euler/indent-bars-mode-maybe ()
-    "Enable indent guides when the current buffer is not large."
-    (unless (euler/large-buffer-p)
-      (indent-bars-mode 1)))
-
   (setq indent-bars-treesit-support t
 	indent-bars-treesit-wrap '((python argument_list parameters
 					   list list_comprehension
@@ -62,6 +63,7 @@
 
 (use-package ligature
   :ensure t
+  :defer 1
   :config
   ;; Enable the "www" ligature in every possible major mode
   (ligature-set-ligatures 't '("www"))
@@ -87,9 +89,15 @@
   ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
 
+(defun euler/hl-todo-mode-maybe ()
+  "Enable TODO highlighting when redisplay cost stays bounded."
+  (unless (euler/expensive-visual-buffer-p)
+    (hl-todo-mode 1)))
+
 (use-package hl-todo
   :ensure t
-  :hook (prog-mode . hl-todo-mode)
+  :commands hl-todo-mode
+  :hook (prog-mode . euler/hl-todo-mode-maybe)
   :config
   (setq hl-todo-highlight-punctuation ":"
 	;; Don't highlight todo keywords in text-mode derivatives unless in

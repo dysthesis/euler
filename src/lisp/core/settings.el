@@ -54,14 +54,33 @@
   :type 'integer
   :group 'euler)
 
+(defun euler/remote-buffer-p ()
+  "Return non-nil when the current buffer is backed by a remote path."
+  (file-remote-p (or buffer-file-name default-directory)))
+
 (defun euler/large-buffer-p (&optional size)
   "Return non-nil when current buffer exceeds SIZE bytes."
   (> (buffer-size) (or size euler/visual-large-buffer-size)))
 
+(defun euler/expensive-visual-buffer-p (&optional size)
+  "Return non-nil when optional visual features should stay disabled."
+  (or (euler/remote-buffer-p)
+      (euler/large-buffer-p size)))
+
 (defun euler/display-line-numbers-mode-maybe ()
-  "Enable line numbers when the current buffer is not large."
-  (unless (euler/large-buffer-p)
+  "Enable line numbers when redisplay cost stays bounded."
+  (unless (euler/expensive-visual-buffer-p)
     (display-line-numbers-mode 1)))
+
+(defun euler/display-fill-column-indicator-mode-maybe ()
+  "Enable the fill-column indicator when redisplay cost stays bounded."
+  (unless (euler/expensive-visual-buffer-p)
+    (display-fill-column-indicator-mode 1)))
+
+(defun euler/hl-line-mode-maybe ()
+  "Enable `hl-line-mode' when redisplay cost stays bounded."
+  (unless (euler/expensive-visual-buffer-p)
+    (hl-line-mode 1)))
 
 (defun euler/treesit-adjust-font-lock-level ()
   "Use richer Tree-sitter highlighting only where its cost stays bounded."
@@ -75,8 +94,8 @@
   :hook
   ;; Auto parenthesis matching
   ((prog-mode . electric-pair-mode)
-   (prog-mode . display-fill-column-indicator-mode)
-   (text-mode . display-fill-column-indicator-mode))
+   (prog-mode . euler/display-fill-column-indicator-mode-maybe)
+   (text-mode . euler/display-fill-column-indicator-mode-maybe))
   
   :config
   (setq-default line-spacing 0.25)
@@ -156,6 +175,8 @@
   ;; Misc. UI tweaks
   (blink-cursor-mode -1)                                ; Steady cursor
   (pixel-scroll-precision-mode)                         ; Smooth scrolling
+  (when (fboundp 'global-so-long-mode)
+    (global-so-long-mode 1))
   
   ;; For terminal users, make the mouse more useful
   (xterm-mouse-mode 1)
@@ -169,7 +190,8 @@
   
   ;; Modes to highlight the current line with
   (let ((hl-line-hooks '(text-mode-hook prog-mode-hook)))
-    (mapc (lambda (hook) (add-hook hook 'hl-line-mode)) hl-line-hooks))
+    (mapc (lambda (hook) (add-hook hook 'euler/hl-line-mode-maybe))
+          hl-line-hooks))
 
   (tool-bar-mode 0)
   (menu-bar-mode 0)
