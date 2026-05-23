@@ -1,6 +1,72 @@
 ;;; -*- lexical-binding: t; -*-
 (require 'ui/keys)
 
+(defcustom euler/window-resize-step 3
+  "Columns or lines to resize windows per smart-splits keypress."
+  :type 'integer
+  :group 'euler)
+
+(defun euler/resize-window--amount (count)
+  "Return resize amount for prefix COUNT."
+  (* euler/window-resize-step (prefix-numeric-value (or count 1))))
+
+(defun euler/resize-window--neighbor (direction window sign)
+  "Return WINDOW neighbour in DIRECTION using edge SIGN."
+  (window-in-direction direction window nil sign nil 'ignore-minibuffer))
+
+(defun euler/resize-window--adjust (window delta &optional horizontal)
+  "Move WINDOW trailing edge by DELTA. HORIZONTAL moves right edge."
+  (when (window-live-p window)
+    (condition-case nil
+        (progn
+          (adjust-window-trailing-edge window delta horizontal)
+          t)
+      (error nil))))
+
+(defun euler/resize-window--move-edge (direction count)
+  "Move selected window edge in DIRECTION by COUNT resize steps."
+  (let* ((window (selected-window))
+         (amount (euler/resize-window--amount count)))
+    (pcase direction
+      ('left
+       (if-let ((left (euler/resize-window--neighbor 'left window 1)))
+           (euler/resize-window--adjust left (- amount) t)
+         (euler/resize-window--adjust window (- amount) t)))
+      ('right
+       (if (euler/resize-window--neighbor 'right window -1)
+           (euler/resize-window--adjust window amount t)
+         (when-let ((left (euler/resize-window--neighbor 'left window 1)))
+           (euler/resize-window--adjust left amount t))))
+      ('up
+       (if-let ((above (euler/resize-window--neighbor 'above window 1)))
+           (euler/resize-window--adjust above (- amount))
+         (euler/resize-window--adjust window (- amount))))
+      ('down
+       (if (euler/resize-window--neighbor 'below window -1)
+           (euler/resize-window--adjust window amount)
+         (when-let ((above (euler/resize-window--neighbor 'above window 1)))
+           (euler/resize-window--adjust above amount)))))))
+
+(defun euler/resize-window-left (&optional count)
+  "Resize current window left by COUNT smart-splits steps."
+  (interactive "p")
+  (euler/resize-window--move-edge 'left count))
+
+(defun euler/resize-window-down (&optional count)
+  "Resize current window down by COUNT smart-splits steps."
+  (interactive "p")
+  (euler/resize-window--move-edge 'down count))
+
+(defun euler/resize-window-up (&optional count)
+  "Resize current window up by COUNT smart-splits steps."
+  (interactive "p")
+  (euler/resize-window--move-edge 'up count))
+
+(defun euler/resize-window-right (&optional count)
+  "Resize current window right by COUNT smart-splits steps."
+  (interactive "p")
+  (euler/resize-window--move-edge 'right count))
+
 (use-package evil
   :ensure t
   :init
@@ -14,7 +80,11 @@
    "C-h" #'evil-window-left
    "C-j" #'evil-window-down
    "C-k" #'evil-window-up
-   "C-l" #'evil-window-right))
+   "C-l" #'evil-window-right
+   "M-h" #'euler/resize-window-left
+   "M-j" #'euler/resize-window-down
+   "M-k" #'euler/resize-window-up
+   "M-l" #'euler/resize-window-right))
 
 (defvar evil-collection-magit-use-z-for-folds)
 (defvar evil-collection-magit-section-use-z-for-folds)

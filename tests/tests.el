@@ -69,8 +69,59 @@
   (should (fboundp 'consult-recent-file))
   (should (bound-and-true-p recentf-mode))
   (should (and (boundp 'recentf-save-file)
-               (stringp recentf-save-file)
-               (file-name-absolute-p recentf-save-file))))
+                (stringp recentf-save-file)
+                (file-name-absolute-p recentf-save-file))))
+
+(ert-deftest euler-test-smart-splits-alt-bindings ()
+  "Alt-h/j/k/l should resize windows in Evil normal state."
+  (with-temp-buffer
+    (evil-normal-state)
+    (dolist (binding '(("M-h" . euler/resize-window-left)
+                       ("M-j" . euler/resize-window-down)
+                       ("M-k" . euler/resize-window-up)
+                       ("M-l" . euler/resize-window-right)))
+      (should (eq (key-binding (kbd (car binding)))
+                  (cdr binding))))))
+
+(ert-deftest euler-test-smart-splits-horizontal-resize ()
+  "Horizontal resizing should move edges in h/l directions."
+  (save-window-excursion
+    (delete-other-windows)
+    (let* ((left (selected-window))
+           (right (split-window-right))
+           (euler/window-resize-step 3)
+           (left-width (window-total-width left)))
+      (select-window left)
+      (euler/resize-window-right)
+      (should (= (window-total-width left) (+ left-width 3)))
+      (euler/resize-window-left)
+      (should (= (window-total-width left) left-width))
+      (select-window right)
+      (let ((right-width (window-total-width right)))
+        (euler/resize-window-left 2)
+        (should (= (window-total-width right) (+ right-width 6)))
+        (euler/resize-window-right 2)
+        (should (= (window-total-width right) right-width))))))
+
+(ert-deftest euler-test-smart-splits-vertical-resize ()
+  "Vertical resizing should move edges in j/k directions."
+  (save-window-excursion
+    (delete-other-windows)
+    (let* ((top (selected-window))
+           (bottom (split-window-below))
+           (euler/window-resize-step 2)
+           (top-height (window-total-height top)))
+      (select-window top)
+      (euler/resize-window-down)
+      (should (= (window-total-height top) (+ top-height 2)))
+      (euler/resize-window-up)
+      (should (= (window-total-height top) top-height))
+      (select-window bottom)
+      (let ((bottom-height (window-total-height bottom)))
+        (euler/resize-window-up 2)
+        (should (= (window-total-height bottom) (+ bottom-height 4)))
+        (euler/resize-window-down 2)
+        (should (= (window-total-height bottom) bottom-height))))))
 
 (ert-deftest euler-test-eglot-formatter-roundtrip ()
   "Toggling Eglot formatting should restore the exact previous formatter value."
