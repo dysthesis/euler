@@ -8,6 +8,10 @@
    rust-ts-mode)
  '("rust-analyzer"))
 
+(with-eval-after-load 'eglot
+  (setq-default eglot-workspace-configuration
+                '(:rust-analyzer (:rustc (:source "discover")))))
+
 (use-package rust-mode
   :ensure t
   :defer t
