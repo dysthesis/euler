@@ -92,6 +92,14 @@
   :config
   (global-corfu-mode))
 
+;; Sorting layer after orderless
+(use-package prescient
+  :ensure t
+  :demand t
+  :after orderless
+  :config
+  (prescient-persist-mode t))
+
 ;; Part of corfu
 (use-package corfu-popupinfo
   :after corfu
